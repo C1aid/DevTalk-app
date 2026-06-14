@@ -7,6 +7,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/signup");
   const isProtectedRoute =
     request.nextUrl.pathname.startsWith("/notes") ||
+    request.nextUrl.pathname.startsWith("/shared") ||
+    request.nextUrl.pathname.startsWith("/archive") ||
+    request.nextUrl.pathname.startsWith("/trash") ||
     request.nextUrl.pathname.startsWith("/settings") ||
     request.nextUrl.pathname.startsWith("/api/stripe/checkout");
 

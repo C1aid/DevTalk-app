@@ -5,20 +5,29 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  AuthDivider,
+  OAuthButtons,
+  authDescriptionClass,
+  authErrorClass,
+  authFooterClass,
+  authFooterLinkClass,
+  authHeadingClass,
+  authInputClass,
+  authLabelClass,
+  authLegalClass,
+  authSubmitClass,
+} from "@/components/auth/auth-ui";
+import { AuthLayout } from "@/components/auth/auth-layout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
-import { formatAuthError, formatSupabaseAuthError, getSupabaseConfigError } from "@/lib/supabase/config";
+import {
+  formatAuthError,
+  formatSupabaseAuthError,
+  getSupabaseConfigError,
+} from "@/lib/supabase/config";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { SupabaseConfigBanner } from "@/components/supabase-config-banner";
 
@@ -36,6 +45,34 @@ export default function LoginForm() {
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
+
+  const signInWithOAuth = async (provider: "google" | "github") => {
+    const configError = getSupabaseConfigError();
+    if (configError) {
+      toast({
+        title: "Sign in unavailable",
+        description: configError,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "OAuth failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const onSubmit = async (data: LoginInput) => {
     const configError = getSupabaseConfigError();
@@ -79,74 +116,80 @@ export default function LoginForm() {
     }
   };
 
-  const signInWithGoogle = async () => {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
-      },
-    });
-
-    if (error) {
-      toast({
-        title: "OAuth failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
       <SupabaseConfigBanner />
-      <div className="flex flex-1 items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>Sign in to your NoteFlow account</CardDescription>
-        </CardHeader>
-        <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" {...register("email")} />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" {...register("password")} />
-              {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign in"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => void signInWithGoogle()}
-            >
-              Continue with Google
-            </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link href="/signup" className="text-primary hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </CardFooter>
+      <AuthLayout>
+        <div className="mb-8">
+          <h1 className={authHeadingClass}>Welcome back</h1>
+          <p className={authDescriptionClass}>
+            Sign in to your NoteFlow account.
+          </p>
+        </div>
+
+        <OAuthButtons
+          onGoogle={() => void signInWithOAuth("google")}
+          onGithub={() => void signInWithOAuth("github")}
+        />
+
+        <AuthDivider />
+
+        <form className="space-y-5" onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
+          <div className="space-y-2">
+            <Label htmlFor="email" className={authLabelClass}>
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="john@example.com"
+              className={authInputClass}
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className={authErrorClass}>{errors.email.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className={authLabelClass}>
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              className={authInputClass}
+              {...register("password")}
+            />
+            {errors.password && (
+              <p className={authErrorClass}>{errors.password.message}</p>
+            )}
+          </div>
+
+          <button type="submit" className={authSubmitClass} disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Sign in"}
+          </button>
         </form>
-      </Card>
-      </div>
-    </div>
+
+        <p className={authFooterClass}>
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className={authFooterLinkClass}>
+            Sign up
+          </Link>
+        </p>
+
+        <p className={`mt-8 text-center ${authLegalClass}`}>
+          By continuing, you agree to our{" "}
+          <Link href="/terms-of-service" className="underline hover:text-zinc-900">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy-policy" className="underline hover:text-zinc-900">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+      </AuthLayout>
+    </>
   );
 }

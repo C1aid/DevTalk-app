@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { activatePremiumFromCheckoutSession } from "@/lib/stripe/activate-premium";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SubscriptionTier } from "@/lib/types/database";
@@ -31,35 +32,12 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.supabase_user_id;
-    const subscriptionId =
-      typeof session.subscription === "string"
-        ? session.subscription
-        : session.subscription?.id;
 
     if (!userId) {
       return NextResponse.json({ error: "Missing user ID" }, { status: 400 });
     }
 
-    if (subscriptionId) {
-      const { data: existing } = await admin
-        .from("subscriptions")
-        .select("id")
-        .eq("stripe_subscription_id", subscriptionId)
-        .maybeSingle();
-
-      if (!existing) {
-        await admin.from("subscriptions").insert({
-          stripe_subscription_id: subscriptionId,
-          user_id: userId,
-          status: "active",
-        });
-      }
-    }
-
-    await admin
-      .from("profiles")
-      .update({ subscription_tier: "premium" as SubscriptionTier })
-      .eq("id", userId);
+    await activatePremiumFromCheckoutSession(session, userId);
   }
 
   if (

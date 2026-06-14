@@ -46,6 +46,7 @@ describe("auth validation", () => {
 
   it("validates signup with matching passwords", () => {
     const result = signupSchema.safeParse({
+      name: "John Doe",
       email: "user@example.com",
       password: "secret123",
       confirmPassword: "secret123",
@@ -55,6 +56,7 @@ describe("auth validation", () => {
 
   it("rejects signup with mismatched passwords", () => {
     const result = signupSchema.safeParse({
+      name: "John Doe",
       email: "user@example.com",
       password: "secret123",
       confirmPassword: "different",

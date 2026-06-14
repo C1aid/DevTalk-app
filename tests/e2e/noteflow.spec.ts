@@ -3,7 +3,9 @@ import { test, expect } from "@playwright/test";
 test.describe("Landing page", () => {
   test("shows hero and navigation", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /notes that flow/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /notes that flow with your team/i }),
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: /sign in/i }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: /get started/i }).first()).toBeVisible();
   });
@@ -29,6 +31,21 @@ test.describe("Protected routes", () => {
     await page.goto("/notes");
     await expect(page).toHaveURL(/\/login/);
   });
+
+  test("redirects unauthenticated users from shared to login", async ({ page }) => {
+    await page.goto("/shared");
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test("redirects unauthenticated users from archive to login", async ({ page }) => {
+    await page.goto("/archive");
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test("redirects unauthenticated users from trash to login", async ({ page }) => {
+    await page.goto("/trash");
+    await expect(page).toHaveURL(/\/login/);
+  });
 });
 
 test.describe("Note management (mocked auth)", () => {
@@ -42,10 +59,11 @@ test.describe("Note management (mocked auth)", () => {
     const password = "testpass123";
 
     await page.goto("/signup");
+    await page.getByLabel("Name").fill("E2E User");
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByLabel("Confirm password").fill(password);
-    await page.getByRole("button", { name: /sign up/i }).click();
+    await page.getByRole("button", { name: /create account/i }).click();
 
     await page.waitForURL(/\/notes/);
     await page.getByRole("button", { name: /new note/i }).click();

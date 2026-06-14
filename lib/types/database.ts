@@ -47,6 +47,8 @@ export interface Database {
           content: Json;
           is_public: boolean;
           share_token: string;
+          archived_at: string | null;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -57,6 +59,8 @@ export interface Database {
           content?: Json;
           is_public?: boolean;
           share_token?: string;
+          archived_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -67,6 +71,8 @@ export interface Database {
           content?: Json;
           is_public?: boolean;
           share_token?: string;
+          archived_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

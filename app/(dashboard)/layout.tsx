@@ -2,7 +2,7 @@
 
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DashboardNav } from "@/components/dashboard-nav";
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import type { Profile } from "@/lib/types/database";
 import { useUserStore } from "@/store/user-store";
 
@@ -43,10 +43,10 @@ export default function DashboardLayout({
   }, [setProfile, setLoading]);
 
   return (
-    <div className="min-h-screen">
-      <DashboardNav />
+    <div className="min-h-screen bg-black text-white">
+      <DashboardSidebar />
       {profileError && (
-        <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-3">
+        <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 lg:pl-72">
           <div className="container mx-auto flex items-start gap-2 text-sm text-destructive">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
@@ -69,7 +69,9 @@ export default function DashboardLayout({
           </div>
         </div>
       )}
-      <main className="container mx-auto px-4 py-6">{children}</main>
+      <main className="px-4 py-6 pt-24 lg:ml-72 lg:pt-8 lg:pb-8 pb-28">
+        <div className="mx-auto max-w-6xl">{children}</div>
+      </main>
     </div>
   );
 }

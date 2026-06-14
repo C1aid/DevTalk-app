@@ -25,7 +25,7 @@ export function UpgradePrompt({
   const isNoteLimit = reason === "note_limit";
 
   return (
-    <Card className="border-primary/50 bg-primary/5">
+    <Card className="border-white/20 bg-white/5">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Crown className="h-5 w-5 text-primary" />
@@ -54,7 +54,7 @@ export function UpgradePrompt({
         </ul>
       </CardContent>
       <CardFooter>
-        <Button asChild>
+        <Button asChild className="btn-brand">
           <Link href="/settings">Upgrade now</Link>
         </Button>
       </CardFooter>

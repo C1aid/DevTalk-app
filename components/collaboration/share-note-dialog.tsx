@@ -87,9 +87,14 @@ export function ShareNoteDialog({
 
   if (!isPremium) {
     return (
-      <Button variant="outline" disabled title="Upgrade to Premium to share notes">
+      <Button
+        variant="outline"
+        disabled
+        title="Upgrade to Premium to share notes"
+        className="border-white/10 bg-white/5 text-gray-300"
+      >
         <Share2 className="mr-2 h-4 w-4" />
-        Share (Premium)
+        Share
       </Button>
     );
   }
@@ -97,7 +102,10 @@ export function ShareNoteDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          className="border-white/10 bg-white/5 text-white transition-smooth hover:bg-white/10"
+        >
           <Share2 className="mr-2 h-4 w-4" />
           Share
         </Button>

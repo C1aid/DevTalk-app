@@ -1,30 +1,33 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActiveCollaborators } from "@/components/collaboration/active-collaborators";
 import { RealtimeNoteSync } from "@/components/collaboration/realtime-note-sync";
-import { ShareNoteDialog } from "@/components/collaboration/share-note-dialog";
 import { NoteEditor } from "@/components/editor/note-editor";
+import { NoteDetailHeader } from "@/components/notes/note-detail-header";
 import { Button } from "@/components/ui/button";
+import { useNoteMutations } from "@/hooks/use-note-mutations";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
+import { getNoteLifecycle } from "@/lib/notes/queries";
 import type { JSONContent } from "@tiptap/core";
-import type { Note } from "@/lib/types/database";
+import type { CollaboratorPermission, Note } from "@/lib/types/database";
 import { debounce } from "@/lib/utils";
 import { useUserStore } from "@/store/user-store";
 
 export default function NoteDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const noteId = params.id as string;
   const shareToken = searchParams.get("token");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const profile = useUserStore((s) => s.profile);
+  const { archive, unarchive, trash, restore, permanentDelete } = useNoteMutations();
   const [title, setTitle] = useState("Untitled Note");
   const [content, setContent] = useState<JSONContent>({
     type: "doc",
@@ -49,9 +52,12 @@ export default function NoteDetailPage() {
         emailRef.current = user.email ?? "user";
       }
 
-      let query = supabase.from("notes").select("*").eq("id", noteId);
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .eq("id", noteId)
+        .single();
 
-      const { data, error } = await query.single();
       if (error) throw error;
 
       if (shareToken && data.share_token !== shareToken) {
@@ -62,10 +68,31 @@ export default function NoteDetailPage() {
     },
   });
 
+  const isOwner = note?.owner_id === profile?.id;
+  const lifecycle = note ? getNoteLifecycle(note) : "active";
+
+  const { data: collaboration } = useQuery({
+    queryKey: ["collaboration", noteId, profile?.id],
+    enabled: !!note && !!profile && !isOwner,
+    queryFn: async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("collaborators")
+        .select("permission")
+        .eq("note_id", noteId)
+        .eq("user_id", profile!.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   useEffect(() => {
     if (note) {
       setTitle(note.title);
       setContent(note.content as JSONContent);
+      setLastSaved(new Date(note.updated_at));
     }
   }, [note]);
 
@@ -85,6 +112,8 @@ export default function NoteDetailPage() {
     onSuccess: () => {
       setLastSaved(new Date());
       void queryClient.invalidateQueries({ queryKey: ["notes"] });
+      void queryClient.invalidateQueries({ queryKey: ["archived-notes"] });
+      void queryClient.invalidateQueries({ queryKey: ["shared-notes"] });
     },
     onError: (err: Error) => {
       toast({
@@ -129,7 +158,42 @@ export default function NoteDetailPage() {
   );
 
   const isPremium = profile?.subscription_tier === "premium";
-  const isOwner = note?.owner_id === profile?.id;
+  const canWrite =
+    lifecycle !== "trashed" &&
+    (isOwner || collaboration?.permission === "write");
+  const role = isOwner
+    ? "owner"
+    : collaboration?.permission === "write"
+      ? "write"
+      : "read";
+
+  const backHref = !isOwner
+    ? "/shared"
+    : lifecycle === "archived"
+      ? "/archive"
+      : lifecycle === "trashed"
+        ? "/trash"
+        : "/notes";
+
+  const backLabel = !isOwner
+    ? "Back to shared"
+    : lifecycle === "archived"
+      ? "Back to archive"
+      : lifecycle === "trashed"
+        ? "Back to trash"
+        : "Back to notes";
+
+  const isActionPending =
+    archive.isPending ||
+    unarchive.isPending ||
+    trash.isPending ||
+    restore.isPending ||
+    permanentDelete.isPending;
+
+  const redirectAfterLifecycleChange = (target: "/notes" | "/archive" | "/trash") => {
+    void queryClient.invalidateQueries({ queryKey: ["note", noteId] });
+    router.push(target);
+  };
 
   if (isLoading) {
     return (
@@ -151,8 +215,8 @@ export default function NoteDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      {userIdRef.current && emailRef.current && (
+    <div className="mx-auto max-w-4xl">
+      {userIdRef.current && emailRef.current && lifecycle !== "trashed" && (
         <RealtimeNoteSync
           noteId={noteId}
           userId={userIdRef.current}
@@ -161,42 +225,77 @@ export default function NoteDetailPage() {
         />
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/notes">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Link>
-        </Button>
+      <NoteDetailHeader
+        backHref={backHref}
+        backLabel={backLabel}
+        role={role}
+        lifecycle={lifecycle}
+        isSaving={isSaving}
+        lastSaved={lastSaved}
+        createdAt={note.created_at}
+        updatedAt={note.updated_at}
+        noteId={noteId}
+        shareToken={note.share_token}
+        isPremium={isPremium}
+        isOwner={isOwner}
+        isActionPending={isActionPending}
+        onArchive={
+          isOwner && lifecycle === "active"
+            ? () =>
+                archive.mutate(noteId, {
+                  onSuccess: () => redirectAfterLifecycleChange("/archive"),
+                })
+            : undefined
+        }
+        onUnarchive={
+          isOwner && lifecycle === "archived"
+            ? () =>
+                unarchive.mutate(noteId, {
+                  onSuccess: () => redirectAfterLifecycleChange("/notes"),
+                })
+            : undefined
+        }
+        onTrash={
+          isOwner && lifecycle !== "trashed"
+            ? () =>
+                trash.mutate(noteId, {
+                  onSuccess: () => redirectAfterLifecycleChange("/trash"),
+                })
+            : undefined
+        }
+        onRestore={
+          isOwner && lifecycle === "trashed"
+            ? () =>
+                restore.mutate(noteId, {
+                  onSuccess: () => redirectAfterLifecycleChange("/notes"),
+                })
+            : undefined
+        }
+        onPermanentDelete={
+          isOwner && lifecycle === "trashed"
+            ? () => {
+                if (window.confirm("Delete this note permanently? This cannot be undone.")) {
+                  permanentDelete.mutate(noteId, {
+                    onSuccess: () => router.push("/trash"),
+                  });
+                }
+              }
+            : undefined
+        }
+      />
 
-        <div className="flex items-center gap-3">
-          <ActiveCollaborators />
-          {isSaving ? (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Saving...
-            </span>
-          ) : lastSaved ? (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Save className="h-3 w-3" />
-              Saved
-            </span>
-          ) : null}
-          {isOwner && (
-            <ShareNoteDialog
-              noteId={noteId}
-              shareToken={note.share_token}
-              isPremium={isPremium}
-            />
-          )}
+      {lifecycle === "trashed" && isOwner && (
+        <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          This note is in Trash. Restore it to edit again, or delete it permanently.
         </div>
-      </div>
+      )}
 
       <NoteEditor
         title={title}
         content={content}
         onChange={handleContentChange}
-        onTitleChange={handleTitleChange}
+        onTitleChange={canWrite ? handleTitleChange : undefined}
+        editable={canWrite}
       />
     </div>
   );

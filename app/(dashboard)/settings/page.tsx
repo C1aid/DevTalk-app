@@ -1,27 +1,84 @@
 "use client";
 
-import { Check, Crown, Loader2, LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Loader2, Settings2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { AccountPanel } from "@/components/settings/account-panel";
+import { PlanPanel } from "@/components/settings/plan-panel";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
-import { getSubscriptionLabel, useUserStore } from "@/store/user-store";
+import { fetchOwnedNotes } from "@/lib/notes/queries";
+import type { Profile } from "@/lib/types/database";
+import { useUserStore } from "@/store/user-store";
 
-export default function SettingsPage() {
+function SettingsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const profile = useUserStore((s) => s.profile);
+  const setProfile = useUserStore((s) => s.setProfile);
   const isLoading = useUserStore((s) => s.isLoading);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const confirmedRef = useRef(false);
+
+  const { data: activeNotes = 0 } = useQuery({
+    queryKey: ["notes"],
+    queryFn: async () => {
+      const supabase = createClient();
+      const notes = await fetchOwnedNotes(supabase);
+      return notes.length;
+    },
+    enabled: !!profile,
+  });
+
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    const success = searchParams.get("success");
+
+    if (!success || !sessionId || confirmedRef.current) return;
+    confirmedRef.current = true;
+
+    const confirmPayment = async () => {
+      setIsConfirming(true);
+      try {
+        const res = await fetch("/api/stripe/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
+
+        if (!res.ok) {
+          const data = (await res.json()) as { error?: string };
+          throw new Error(data.error ?? "Could not activate Premium");
+        }
+
+        const profileRes = await fetch("/api/profile");
+        if (profileRes.ok) {
+          const updated = (await profileRes.json()) as Profile;
+          setProfile(updated);
+        }
+
+        toast({
+          title: "Premium activated",
+          description: "Your subscription is now active.",
+        });
+        router.replace("/settings");
+      } catch (err) {
+        toast({
+          title: "Activation failed",
+          description: err instanceof Error ? err.message : "Something went wrong",
+          variant: "destructive",
+        });
+      } finally {
+        setIsConfirming(false);
+      }
+    };
+
+    void confirmPayment();
+  }, [searchParams, setProfile, toast, router]);
 
   const handleUpgrade = async () => {
     setIsUpgrading(true);
@@ -51,7 +108,7 @@ export default function SettingsPage() {
     router.refresh();
   };
 
-  if (isLoading) {
+  if (isLoading || isConfirming) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -59,63 +116,51 @@ export default function SettingsPage() {
     );
   }
 
-  const isPremium = profile?.subscription_tier === "premium";
+  if (!profile) {
+    return (
+      <div className="py-20 text-center text-muted-foreground">
+        Could not load profile.
+      </div>
+    );
+  }
+
+  const isPremium = profile.subscription_tier === "premium";
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="space-y-8">
+      <PageHeader
+        title="Settings"
+        description="Manage your account, plan, and workspace."
+        icon={Settings2}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Account</CardTitle>
-          <CardDescription>{profile?.email}</CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button variant="outline" onClick={() => void handleSignOut()}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign out
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <Card className={isPremium ? "border-primary" : ""}>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Crown className="h-5 w-5 text-primary" />
-            <CardTitle>
-              {profile ? getSubscriptionLabel(profile.subscription_tier) : "Free"} Plan
-            </CardTitle>
-          </div>
-          <CardDescription>
-            {isPremium
-              ? "You have access to all Premium features."
-              : "Upgrade to unlock unlimited notes and collaboration."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm">
-            {[
-              "Unlimited notes",
-              "Real-time collaboration",
-              "Share & invite collaborators",
-            ].map((feature) => (
-              <li key={feature} className="flex items-center gap-2">
-                <Check
-                  className={`h-4 w-4 ${isPremium ? "text-primary" : "text-muted-foreground"}`}
-                />
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-        {!isPremium && (
-          <CardFooter>
-            <Button onClick={() => void handleUpgrade()} disabled={isUpgrading}>
-              {isUpgrading ? "Redirecting..." : "Upgrade to Premium — $9/mo"}
-            </Button>
-          </CardFooter>
-        )}
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <AccountPanel profile={profile} onSignOut={() => void handleSignOut()} />
+        </div>
+        <div className="lg:col-span-3">
+          <PlanPanel
+            isPremium={isPremium}
+            activeNotes={activeNotes}
+            isUpgrading={isUpgrading}
+            onUpgrade={() => void handleUpgrade()}
+          />
+        </div>
+      </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
   );
 }

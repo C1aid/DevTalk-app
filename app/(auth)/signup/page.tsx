@@ -5,15 +5,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  AuthDivider,
+  OAuthButtons,
+  authCheckboxClass,
+  authCheckboxLabelClass,
+  authDescriptionClass,
+  authErrorClass,
+  authFooterClass,
+  authFooterLinkClass,
+  authHeadingClass,
+  authInputClass,
+  authLabelClass,
+  authLegalClass,
+  authSubmitClass,
+} from "@/components/auth/auth-ui";
+import { AuthLayout } from "@/components/auth/auth-layout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +33,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [updatesOptIn, setUpdatesOptIn] = useState(false);
 
   const {
     register,
@@ -34,6 +42,34 @@ export default function SignupPage() {
   } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
   });
+
+  const signInWithOAuth = async (provider: "google" | "github") => {
+    const configError = getSupabaseConfigError();
+    if (configError) {
+      toast({
+        title: "Sign up unavailable",
+        description: configError,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=/notes`,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "OAuth failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const onSubmit = async (data: SignupInput) => {
     const configError = getSupabaseConfigError();
@@ -55,6 +91,10 @@ export default function SignupPage() {
         password: data.password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            full_name: data.name,
+            updates_opt_in: updatesOptIn,
+          },
         },
       });
 
@@ -84,87 +124,126 @@ export default function SignupPage() {
     }
   };
 
-  const signUpWithGoogle = async () => {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=/notes`,
-      },
-    });
-
-    if (error) {
-      toast({
-        title: "OAuth failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
       <SupabaseConfigBanner />
-      <div className="flex flex-1 items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create an account</CardTitle>
-          <CardDescription>Start taking notes with NoteFlow</CardDescription>
-        </CardHeader>
-        <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
-          <CardContent className="space-y-4">
+      <AuthLayout>
+        <div className="mb-8">
+          <h1 className={authHeadingClass}>Create an account</h1>
+          <p className={authDescriptionClass}>
+            Get started with NoteFlow in minutes.
+          </p>
+        </div>
+
+        <OAuthButtons
+          onGoogle={() => void signInWithOAuth("google")}
+          onGithub={() => void signInWithOAuth("github")}
+        />
+
+        <AuthDivider />
+
+        <form className="space-y-5" onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" {...register("email")} />
+              <Label htmlFor="name" className={authLabelClass}>
+                Name
+              </Label>
+              <Input
+                id="name"
+                placeholder="John Doe"
+                className={authInputClass}
+                {...register("name")}
+              />
+              {errors.name && (
+                <p className={authErrorClass}>{errors.name.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className={authLabelClass}>
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                className={authInputClass}
+                {...register("email")}
+              />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className={authErrorClass}>{errors.email.message}</p>
               )}
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" {...register("password")} />
+              <Label htmlFor="password" className={authLabelClass}>
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                className={authInputClass}
+                {...register("password")}
+              />
               {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
+                <p className={authErrorClass}>{errors.password.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm password</Label>
+              <Label htmlFor="confirmPassword" className={authLabelClass}>
+                Confirm Password
+              </Label>
               <Input
                 id="confirmPassword"
                 type="password"
+                className={authInputClass}
                 {...register("confirmPassword")}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive">
+                <p className={authErrorClass}>
                   {errors.confirmPassword.message}
                 </p>
               )}
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Sign up"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => void signUpWithGoogle()}
-            >
-              Continue with Google
-            </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
+          </div>
+
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={updatesOptIn}
+              onChange={(e) => setUpdatesOptIn(e.target.checked)}
+              className={authCheckboxClass}
+            />
+            <span className={authCheckboxLabelClass}>
+              Know when we release new integrations and models.
+            </span>
+          </label>
+
+          <button type="submit" className={authSubmitClass} disabled={isLoading}>
+            {isLoading ? "Creating account..." : "Create account"}
+          </button>
         </form>
-      </Card>
-      </div>
-    </div>
+
+        <p className={authFooterClass}>
+          Already have an account?{" "}
+          <Link href="/login" className={authFooterLinkClass}>
+            Sign in
+          </Link>
+        </p>
+
+        <p className={`mt-8 text-center ${authLegalClass}`}>
+          By continuing, you agree to our{" "}
+          <Link href="/terms-of-service" className="underline hover:text-zinc-900">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy-policy" className="underline hover:text-zinc-900">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+      </AuthLayout>
+    </>
   );
 }

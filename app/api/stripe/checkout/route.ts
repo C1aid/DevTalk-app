@@ -39,7 +39,7 @@ export async function POST() {
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: [{ price: PREMIUM_PRICE_ID, quantity: 1 }],
-      success_url: `${appUrl}/settings?success=true`,
+      success_url: `${appUrl}/settings?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/settings?canceled=true`,
       metadata: { supabase_user_id: user.id },
     });
