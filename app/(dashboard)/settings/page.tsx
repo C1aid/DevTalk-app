@@ -5,12 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AccountPanel } from "@/components/settings/account-panel";
+import { ChangePasswordPanel } from "@/components/settings/change-password-panel";
 import { PlanPanel } from "@/components/settings/plan-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useUpgrade } from "@/hooks/use-upgrade";
 import { useToast } from "@/hooks/use-toast";
+import { countUserChannels } from "@/lib/chat/queries";
 import { createClient } from "@/lib/supabase/client";
-import { fetchOwnedNotes } from "@/lib/notes/queries";
-import type { Profile } from "@/lib/types/database";
+import { isProTier, type Profile } from "@/lib/types/database";
 import { useUserStore } from "@/store/user-store";
 
 function SettingsContent() {
@@ -20,16 +22,20 @@ function SettingsContent() {
   const profile = useUserStore((s) => s.profile);
   const setProfile = useUserStore((s) => s.setProfile);
   const isLoading = useUserStore((s) => s.isLoading);
-  const [isUpgrading, setIsUpgrading] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const confirmedRef = useRef(false);
+  const canceledRef = useRef(false);
+  const { upgrade, isUpgrading } = useUpgrade();
 
-  const { data: activeNotes = 0 } = useQuery({
-    queryKey: ["notes"],
+  const { data: channelCount = 0 } = useQuery({
+    queryKey: ["channel-count"],
     queryFn: async () => {
       const supabase = createClient();
-      const notes = await fetchOwnedNotes(supabase);
-      return notes.length;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return 0;
+      return countUserChannels(supabase, user.id);
     },
     enabled: !!profile,
   });
@@ -37,6 +43,17 @@ function SettingsContent() {
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
     const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+
+    if (canceled && !canceledRef.current) {
+      canceledRef.current = true;
+      toast({
+        title: "Checkout canceled",
+        description: "No changes were made to your plan.",
+      });
+      router.replace("/settings");
+      return;
+    }
 
     if (!success || !sessionId || confirmedRef.current) return;
     confirmedRef.current = true;
@@ -52,7 +69,7 @@ function SettingsContent() {
 
         if (!res.ok) {
           const data = (await res.json()) as { error?: string };
-          throw new Error(data.error ?? "Could not activate Premium");
+          throw new Error(data.error ?? "Could not activate Pro");
         }
 
         const profileRes = await fetch("/api/profile");
@@ -62,7 +79,7 @@ function SettingsContent() {
         }
 
         toast({
-          title: "Premium activated",
+          title: "Pro activated",
           description: "Your subscription is now active.",
         });
         router.replace("/settings");
@@ -79,27 +96,6 @@ function SettingsContent() {
 
     void confirmPayment();
   }, [searchParams, setProfile, toast, router]);
-
-  const handleUpgrade = async () => {
-    setIsUpgrading(true);
-    try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
-      const data = (await res.json()) as { url?: string; error?: string };
-
-      if (!res.ok || !data.url) {
-        throw new Error(data.error ?? "Failed to start checkout");
-      }
-
-      window.location.href = data.url;
-    } catch (err) {
-      toast({
-        title: "Checkout failed",
-        description: err instanceof Error ? err.message : "Something went wrong",
-        variant: "destructive",
-      });
-      setIsUpgrading(false);
-    }
-  };
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -124,26 +120,31 @@ function SettingsContent() {
     );
   }
 
-  const isPremium = profile.subscription_tier === "premium";
+  const isPro = isProTier(profile.subscription_tier);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 lg:mx-auto lg:max-w-6xl">
       <PageHeader
         title="Settings"
-        description="Manage your account, plan, and workspace."
+        description="Manage your account and subscription."
         icon={Settings2}
       />
 
       <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-2">
-          <AccountPanel profile={profile} onSignOut={() => void handleSignOut()} />
+        <div className="space-y-6 lg:col-span-2">
+          <AccountPanel
+            profile={profile}
+            onProfileUpdate={setProfile}
+            onSignOut={() => void handleSignOut()}
+          />
+          <ChangePasswordPanel />
         </div>
         <div className="lg:col-span-3">
           <PlanPanel
-            isPremium={isPremium}
-            activeNotes={activeNotes}
+            isPro={isPro}
+            channelCount={channelCount}
             isUpgrading={isUpgrading}
-            onUpgrade={() => void handleUpgrade()}
+            onUpgrade={() => void upgrade()}
           />
         </div>
       </div>

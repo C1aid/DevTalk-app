@@ -1,9 +1,16 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import {
+  DashboardSidebar,
+  showSecondarySidebar,
+} from "@/components/dashboard-sidebar";
+import { IconRail } from "@/components/dashboard/icon-rail";
 import type { Profile } from "@/lib/types/database";
+import { isChannelChatRoute } from "@/lib/workspace/paths";
+import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/user-store";
 
 export default function DashboardLayout({
@@ -11,9 +18,15 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isChat = isChannelChatRoute(pathname);
+  const hasChannelSidebar = showSecondarySidebar(pathname);
   const setProfile = useUserStore((s) => s.setProfile);
   const setLoading = useUserStore((s) => s.setLoading);
   const [profileError, setProfileError] = useState<string | null>(null);
+
+  const desktopMainOffset = hasChannelSidebar ? "lg:ml-[360px]" : "lg:ml-[72px]";
+  const bannerOffset = hasChannelSidebar ? "lg:pl-[360px]" : "lg:pl-[72px]";
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -44,33 +57,32 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <IconRail />
       <DashboardSidebar />
       {profileError && (
-        <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 lg:pl-72">
+        <div
+          className={cn(
+            "border-b border-destructive/30 bg-destructive/10 px-3 py-3 sm:px-4",
+            bannerOffset,
+          )}
+        >
           <div className="container mx-auto flex items-start gap-2 text-sm text-destructive">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <p>
-              {profileError}
-              {profileError.includes("profiles") && (
-                <>
-                  {" "}
-                  Open Supabase → SQL Editor and run{" "}
-                  <code className="rounded bg-destructive/10 px-1">
-                    001_initial_schema.sql
-                  </code>{" "}
-                  then{" "}
-                  <code className="rounded bg-destructive/10 px-1">
-                    002_backfill_profiles.sql
-                  </code>
-                  .
-                </>
-              )}
-            </p>
+            <p>{profileError}</p>
           </div>
         </div>
       )}
-      <main className="px-4 py-6 pt-24 lg:ml-72 lg:pt-8 lg:pb-8 pb-28">
-        <div className="mx-auto max-w-6xl">{children}</div>
+      <main
+        className={cn(
+          desktopMainOffset,
+          isChat
+            ? "flex h-[100dvh] flex-col px-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] pt-[3.75rem] lg:h-auto lg:min-h-screen lg:px-4 lg:pb-8 lg:pt-8"
+            : "px-3 py-5 pt-[4.75rem] pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] sm:px-4 sm:py-6 sm:pt-24 lg:px-4 lg:pt-8 lg:pb-8",
+        )}
+      >
+        <div className={cn("w-full", isChat && "flex min-h-0 flex-1 flex-col")}>
+          {children}
+        </div>
       </main>
     </div>
   );

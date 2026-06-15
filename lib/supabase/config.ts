@@ -21,9 +21,31 @@ export function getSupabaseConfigError(): string | null {
   return "Supabase is not configured. Add your project URL and anon key to .env.local, then restart the dev server.";
 }
 
-export function formatSupabaseAuthError(message: string): string {
-  if (message.toLowerCase().includes("email not confirmed")) {
+export type AuthErrorContext = "signup" | "login" | "reset";
+
+export function formatSupabaseAuthError(
+  message: string,
+  context: AuthErrorContext = "login",
+): string {
+  const lower = message.toLowerCase();
+
+  if (lower.includes("email not confirmed")) {
     return "Confirm your email first — check your inbox for the Supabase verification link.";
+  }
+
+  if (lower.includes("rate limit") || lower.includes("too many requests")) {
+    const limitNote =
+      "Supabase temporarily blocked auth emails for this project — the built-in mailer has a very low limit.";
+
+    if (context === "signup") {
+      return `${limitNote} Wait about an hour, or create the user in Supabase Dashboard → Authentication → Users (you can disable “Confirm email” while testing).`;
+    }
+
+    if (context === "reset") {
+      return `${limitNote} Wait about an hour and try again, or reset the password manually in Supabase Dashboard → Authentication → Users.`;
+    }
+
+    return `${limitNote} Wait about an hour and try again.`;
   }
 
   return message;

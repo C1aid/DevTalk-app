@@ -4,14 +4,26 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function updateSession(request: NextRequest) {
   const isAuthRoute =
     request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/signup");
+    request.nextUrl.pathname.startsWith("/signup") ||
+    request.nextUrl.pathname.startsWith("/forgot-password");
   const isProtectedRoute =
-    request.nextUrl.pathname.startsWith("/notes") ||
-    request.nextUrl.pathname.startsWith("/shared") ||
-    request.nextUrl.pathname.startsWith("/archive") ||
-    request.nextUrl.pathname.startsWith("/trash") ||
+    request.nextUrl.pathname.startsWith("/w/") ||
+    request.nextUrl.pathname.startsWith("/channels") ||
+    request.nextUrl.pathname.startsWith("/search") ||
     request.nextUrl.pathname.startsWith("/settings") ||
-    request.nextUrl.pathname.startsWith("/api/stripe/checkout");
+    request.nextUrl.pathname.startsWith("/dms") ||
+    request.nextUrl.pathname.startsWith("/activity") ||
+    request.nextUrl.pathname.startsWith("/files") ||
+    request.nextUrl.pathname.startsWith("/threads") ||
+    request.nextUrl.pathname.startsWith("/dms") ||
+    request.nextUrl.pathname.startsWith("/api/stripe/checkout") ||
+    request.nextUrl.pathname.startsWith("/api/channels") ||
+    request.nextUrl.pathname.startsWith("/api/messages") ||
+    request.nextUrl.pathname.startsWith("/api/dms") ||
+    request.nextUrl.pathname.startsWith("/api/users") ||
+    request.nextUrl.pathname.startsWith("/api/channel-sections") ||
+    request.nextUrl.pathname.startsWith("/api/workspaces") ||
+    request.nextUrl.pathname.startsWith("/api/profile");
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -58,7 +70,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/notes";
+    url.pathname = "/channels";
     return NextResponse.redirect(url);
   }
 

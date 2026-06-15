@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { label: "Features", href: "/#features" },
-  { label: "Quickstart", href: "/#quickstart" },
   { label: "Pricing", href: "/#pricing" },
   { label: "FAQ", href: "/#faq" },
 ];
@@ -19,7 +18,8 @@ type SiteHeaderProps = {
 export function SiteHeader({ overlapHero = false }: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const shellClass = "fixed left-0 right-0 top-0 z-50 px-6 pt-6 md:px-12 lg:px-16";
+  const shellClass =
+    "fixed left-0 right-0 top-0 z-50 px-4 pt-4 sm:px-6 sm:pt-6 md:px-12 lg:px-16";
 
   const barClass =
     "liquid-glass relative flex items-center justify-between rounded-xl px-4 py-2";
@@ -38,7 +38,7 @@ export function SiteHeader({ overlapHero = false }: SiteHeaderProps) {
             href="/"
             className="select-none text-2xl font-semibold tracking-tight text-white"
           >
-            NoteFlow
+            DevTalk
           </Link>
 
           <nav className="absolute left-1/2 flex -translate-x-1/2 items-center gap-8">
@@ -66,7 +66,7 @@ export function SiteHeader({ overlapHero = false }: SiteHeaderProps) {
             href="/"
             className="text-lg font-semibold tracking-tight text-white"
           >
-            NoteFlow
+            DevTalk
           </Link>
 
           <button
@@ -119,7 +119,7 @@ export function SiteHeader({ overlapHero = false }: SiteHeaderProps) {
         </div>
       </header>
 
-      {!overlapHero && <div className="h-24 md:h-28" aria-hidden />}
+      {!overlapHero && <div className="h-20 sm:h-24 md:h-28" aria-hidden />}
     </>
   );
 }

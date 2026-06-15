@@ -42,7 +42,7 @@ export function AnimatedHeading({
       aria-label={text.replace(/\n/g, " ")}
     >
       {lines.map((line, lineIndex) => (
-        <div key={lineIndex} className="flex flex-wrap justify-center">
+        <div key={lineIndex} className="flex justify-center whitespace-nowrap">
           {line.split("").map((char) => {
             const index = charIndex++;
             return (

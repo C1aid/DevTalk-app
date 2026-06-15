@@ -1,4 +1,4 @@
-# NoteFlow
+# DevTalk
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js_14-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
@@ -7,9 +7,9 @@
 [![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white)](https://stripe.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-Collaborative notes app with Supabase auth, Stripe billing, and real-time sync (Premium).
+Team chat for developers with Supabase auth, Stripe billing, and real-time messaging.
 
-Free plan: up to 5 notes. Premium: unlimited notes, sharing, and live co-editing.
+Free plan: up to 10 channels, 90-day message history. Pro: unlimited channels and full history.
 
 ---
 
@@ -36,33 +36,33 @@ Free plan: up to 5 notes. Premium: unlimited notes, sharing, and live co-editing
 | Framework | Next.js 14 (App Router), TypeScript (strict) |
 | UI | Tailwind CSS, shadcn/ui |
 | Backend | Supabase — Auth, PostgreSQL, RLS, Realtime |
-| Editor | TipTap |
+| Messaging | Markdown messages, threads, reactions |
 | Payments | Stripe Checkout + webhooks |
 | State | Zustand, TanStack Query |
 | Tests | Vitest, Playwright |
 | CI | GitHub Actions |
 
-Node.js 18+, npm 9+. Dev server: **http://localhost:3001** (port 3001 avoids conflicts with other local apps).
+Node.js 18+, npm 9+. Dev server: **http://localhost:3001**.
 
 ---
 
 ## Features
 
 - Email/password auth (+ optional Google OAuth)
-- Notes CRUD with debounced auto-save
-- Free tier capped at 5 notes
-- Premium: unlimited notes, share links, collaborator invites
-- Real-time sync and presence avatars (Premium)
+- Public and private channels
+- Real-time messages, threads, and emoji reactions
+- Markdown + code blocks + GitHub link previews
+- Free tier: 10 channels, 90-day history
+- Pro: unlimited channels and full message history
 - Stripe subscription via Settings
-- Dark/light theme
 
 ---
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/C1aid/noteflow.git
-cd noteflow
+git clone https://github.com/C1aid/devtalk-app.git
+cd devtalk-app
 npm install
 cp .env.local.example .env.local
 ```
@@ -82,7 +82,7 @@ cp .env.local.example .env.local
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
 | `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_PREMIUM_PRICE_ID` | Premium monthly price ID |
+| `STRIPE_PRO_PRICE_ID` | Pro monthly price ID |
 | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3001` in dev |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional |
@@ -100,13 +100,24 @@ Do not commit `.env.local`.
    - `supabase/migrations/001_initial_schema.sql`
    - `supabase/migrations/002_backfill_profiles.sql`
    - `supabase/migrations/003_fix_rls_recursion.sql`
+   - `supabase/migrations/004_add_pro_tier.sql` (run alone — PostgreSQL enum quirk)
+   - `supabase/migrations/005_devtalk_chat.sql`
+   - `supabase/migrations/006_drop_legacy.sql` (removes unused notes tables)
+   - `supabase/migrations/007_profile_display.sql` (display name + avatar URL)
+   - `supabase/migrations/008_avatars_storage.sql` (avatar uploads bucket)
+   - `supabase/migrations/009_channel_sections_dms.sql` (channel sections + DMs)
+   - `supabase/migrations/010_channel_delete_policy.sql` (delete channels + DMs)
+   - `supabase/migrations/011_channel_members_leave.sql` (leave channels + DMs)
+   - `supabase/migrations/012_workspaces.sql` (workspaces — top-level groups)
 3. Optional: disable email confirmation under **Authentication → Providers → Email**
 4. Google OAuth redirect: `http://localhost:3001/auth/callback`
 
+Already on an older schema (001–003 applied)? Run **004**, then **005**, then **006** — each as a separate query in SQL Editor.
+
 **Stripe**
 
-1. Create product **NoteFlow Premium** with a monthly price (test mode)
-2. Copy price ID → `STRIPE_PREMIUM_PRICE_ID`
+1. Create product **DevTalk Pro** with a monthly price (test mode)
+2. Copy price ID → `STRIPE_PRO_PRICE_ID`
 3. Local webhooks:
 
 ```bash
@@ -135,8 +146,8 @@ Test card: `4242 4242 4242 4242`
 
 ```
 app/           routes (auth, dashboard, api)
-components/    ui, editor, collaboration
-lib/           supabase, stripe, validations
+components/    ui, chat, landing, auth
+lib/           supabase, stripe, validations, chat
 store/         zustand
 supabase/      SQL migrations
 tests/         unit + e2e
@@ -162,16 +173,13 @@ CI on `main`: lint → type-check → unit tests → build → e2e.
 Frees port 3000 for other local projects. Set in `package.json`.
 
 **Profile not found on checkout?**  
-Run both SQL migrations. The app auto-creates profiles via `/api/profile` once tables exist.
+Run the SQL migrations. The app auto-creates profiles via `/api/profile` once tables exist.
 
 **Email not confirmed?**  
 Confirm via Supabase email, confirm user manually in dashboard, or disable confirmation for dev.
 
 **Failed to fetch on sign up?**  
 Check Supabase URL and keys in `.env.local`, then restart the dev server.
-
-**Same Stripe keys in multiple projects?**  
-Fine in test mode. Use separate webhook secrets per deployed URL.
 
 ---
 

@@ -1,41 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { Radio, Share2, Users, Zap } from "lucide-react";
+import { Hash, MessageSquare, Radio, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const snippets = [
   {
-    id: "create",
-    label: "create",
-    filename: "notes.ts",
+    id: "channel",
+    label: "channel",
+    filename: "channels.ts",
     lines: [
-      { tokens: [{ t: "const", c: "kw" }, { t: " note ", c: "id" }, { t: "=", c: "kw" }, { t: " await ", c: "kw" }, { t: "noteflow", c: "fn" }, { t: ".", c: "kw" }, { t: "create", c: "method" }, { t: "({", c: "kw" }] },
-      { tokens: [{ t: "  title: ", c: "id" }, { t: "'Sprint retro'", c: "str" }, { t: ",", c: "kw" }] },
-      { tokens: [{ t: "  sync: ", c: "id" }, { t: "true", c: "bool" }, { t: ",", c: "kw" }] },
+      { tokens: [{ t: "const", c: "kw" }, { t: " channel ", c: "id" }, { t: "=", c: "kw" }, { t: " await ", c: "kw" }, { t: "devtalk", c: "fn" }, { t: ".", c: "kw" }, { t: "createChannel", c: "method" }, { t: "({", c: "kw" }] },
+      { tokens: [{ t: "  name: ", c: "id" }, { t: "'#sprint-42'", c: "str" }, { t: ",", c: "kw" }] },
+      { tokens: [{ t: "  visibility: ", c: "id" }, { t: "'public'", c: "str" }, { t: ",", c: "kw" }] },
       { tokens: [{ t: "});", c: "kw" }] },
     ],
   },
   {
-    id: "share",
-    label: "share",
-    filename: "collab.ts",
+    id: "message",
+    label: "message",
+    filename: "messages.ts",
     lines: [
-      { tokens: [{ t: "await ", c: "kw" }, { t: "noteflow", c: "fn" }, { t: ".", c: "kw" }, { t: "invite", c: "method" }, { t: "(note.id, {", c: "kw" }] },
-      { tokens: [{ t: "  email: ", c: "id" }, { t: "'dev@team.io'", c: "str" }, { t: ",", c: "kw" }] },
-      { tokens: [{ t: "  permission: ", c: "id" }, { t: "'write'", c: "str" }, { t: ",", c: "kw" }] },
+      { tokens: [{ t: "await ", c: "kw" }, { t: "devtalk", c: "fn" }, { t: ".", c: "kw" }, { t: "send", c: "method" }, { t: "(channel.id, {", c: "kw" }] },
+      { tokens: [{ t: "  content: ", c: "id" }, { t: "'Shipped the fix 🚀'", c: "str" }, { t: ",", c: "kw" }] },
+      { tokens: [{ t: "  threadId: ", c: "id" }, { t: "parent.id", c: "id" }, { t: ",", c: "kw" }] },
       { tokens: [{ t: "});", c: "kw" }] },
     ],
   },
   {
-    id: "sync",
-    label: "sync",
+    id: "realtime",
+    label: "realtime",
     filename: "realtime.ts",
     lines: [
-      { tokens: [{ t: "noteflow", c: "fn" }, { t: ".", c: "kw" }, { t: "channel", c: "method" }, { t: "(note.id)", c: "kw" }] },
-      { tokens: [{ t: "  .", c: "kw" }, { t: "on", c: "method" }, { t: "('update', ({ content }) => {", c: "kw" }] },
-      { tokens: [{ t: "    editor.", c: "fn" }, { t: "setContent", c: "method" }, { t: "(content);", c: "kw" }] },
+      { tokens: [{ t: "devtalk", c: "fn" }, { t: ".", c: "kw" }, { t: "subscribe", c: "method" }, { t: "(channel.id)", c: "kw" }] },
+      { tokens: [{ t: "  .", c: "kw" }, { t: "on", c: "method" }, { t: "('message', (msg) => {", c: "kw" }] },
+      { tokens: [{ t: "    render", c: "method" }, { t: "(msg);", c: "kw" }] },
       { tokens: [{ t: "  });", c: "kw" }] },
     ],
   },
@@ -51,9 +51,9 @@ const tokenColors: Record<string, string> = {
 };
 
 const highlights = [
-  { icon: Zap, label: "Auto-save", value: "< 500ms" },
-  { icon: Users, label: "Live sync", value: "Real-time" },
-  { icon: Share2, label: "Sharing", value: "Read & write" },
+  { icon: Zap, label: "Delivery", value: "< 100ms" },
+  { icon: MessageSquare, label: "Threads", value: "Inline" },
+  { icon: Hash, label: "Channels", value: "Public & private" },
 ] as const;
 
 function CodeLine({ tokens }: { tokens: readonly { t: string; c: string }[] }) {
@@ -89,19 +89,19 @@ export function AuthShowcase() {
           href="/"
           className="select-none text-2xl font-semibold tracking-tight text-white"
         >
-          NoteFlow
+          DevTalk
         </Link>
       </div>
 
       <div className="relative z-10 max-w-xl">
         <p className="text-gradient mb-3 text-3xl font-semibold tracking-tight">
-          Notes that flow
+          Chat that flows
           <br />
           with your team.
         </p>
         <p className="mb-8 max-w-md text-sm leading-relaxed text-gray-300">
-          Collaborative note infrastructure — create, share, and edit in real
-          time without leaving your workflow.
+          Team chat for developers — channels, threads, code blocks, and GitHub
+          link previews in one place.
         </p>
 
         <div className="relative">
@@ -183,7 +183,7 @@ export function AuthShowcase() {
       <div className="relative z-10 flex items-center gap-3">
         <div className="liquid-glass flex items-center gap-2 rounded-full px-3 py-1.5">
           <Radio className="size-3.5 text-green-400" strokeWidth={2} />
-          <span className="text-xs text-gray-300">Supabase · TipTap · Next.js</span>
+          <span className="text-xs text-gray-300">Supabase · Next.js · Stripe</span>
         </div>
       </div>
     </div>

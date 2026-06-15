@@ -2,8 +2,8 @@ import Link from "next/link";
 import { LegalLayout } from "@/components/legal/legal-layout";
 
 export const metadata = {
-  title: "Terms of Service – NoteFlow",
-  description: "Terms of Service for NoteFlow collaborative note-taking platform.",
+  title: "Terms of Service – DevTalk",
+  description: "Terms of Service for DevTalk collaborative team chat platform.",
 };
 
 export default function TermsOfServicePage() {
@@ -13,15 +13,15 @@ export default function TermsOfServicePage() {
         <strong>AGREEMENT TO OUR LEGAL TERMS</strong>
       </p>
       <p>
-        We operate the website and application known as NoteFlow (the
-        &quot;Site&quot;), a collaborative note-taking platform, as well as any
+        We operate the website and application known as DevTalk (the
+        &quot;Site&quot;), a collaborative team chat platform, as well as any
         related products and services that refer or link to these legal terms
         (collectively, the &quot;Services&quot;).
       </p>
       <p>
         These Legal Terms constitute a legally binding agreement between you,
         whether personally or on behalf of an entity (&quot;you&quot;), and
-        NoteFlow, concerning your access to and use of the Services. By accessing
+        DevTalk, concerning your access to and use of the Services. By accessing
         the Services, you agree that you have read, understood, and agreed to be
         bound by all of these Legal Terms. If you do not agree with all of these
         Legal Terms, you are prohibited from using the Services and must
@@ -51,7 +51,7 @@ export default function TermsOfServicePage() {
           <a href="#payments">Subscriptions and payment</a>
         </li>
         <li>
-          <a href="#content">Your notes and content</a>
+          <a href="#content">Your messages and content</a>
         </li>
         <li>
           <a href="#prohibited">Prohibited activities</a>
@@ -75,9 +75,9 @@ export default function TermsOfServicePage() {
 
       <h2 id="services">1. Our services</h2>
       <p>
-        NoteFlow provides collaborative note-taking with rich text editing,
-        auto-save, real-time collaboration on Premium plans, and subscription
-        billing. The information provided when using the Services is not
+        DevTalk provides team chat with channels, threads, real-time messaging on
+        Pro plans, and subscription billing. The information provided when using
+        the Services is not
         intended for distribution to or use by any person or entity in any
         jurisdiction where such distribution or use would be contrary to law or
         regulation.
@@ -121,8 +121,8 @@ export default function TermsOfServicePage() {
 
       <h2 id="payments">5. Subscriptions and payment</h2>
       <p>
-        NoteFlow offers free and Premium subscription plans. Premium features
-        include unlimited notes and real-time collaboration. Payments are
+        DevTalk offers free and Pro subscription plans. Pro features include
+        unlimited channels and full message history. Payments are
         processed by Stripe. By subscribing, you agree to Stripe&apos;s terms
         and authorize recurring charges according to your selected plan.
       </p>
@@ -133,12 +133,12 @@ export default function TermsOfServicePage() {
         policy at the time of purchase.
       </p>
 
-      <h2 id="content">6. Your notes and content</h2>
+      <h2 id="content">6. Your messages and content</h2>
       <p>
-        You retain ownership of the notes and content you create in NoteFlow. By
+        You retain ownership of the messages and content you create in DevTalk. By
         using the Services, you grant us a limited license to host, store,
         display, and process your content solely to provide the Services,
-        including real-time sync and collaboration features.
+        including real-time messaging features.
       </p>
       <p>
         You are solely responsible for your content. You represent that you have
@@ -157,7 +157,7 @@ export default function TermsOfServicePage() {
         <li>Harass, abuse, or harm other users.</li>
         <li>Attempt unauthorized access to accounts, systems, or data.</li>
         <li>Scrape or systematically extract data without permission.</li>
-        <li>Use the Services to compete with NoteFlow or for unauthorized commercial resale.</li>
+        <li>Use the Services to compete with DevTalk or for unauthorized commercial resale.</li>
         <li>Share content that is illegal, infringing, or violates others&apos; privacy.</li>
         <li>Circumvent subscription limits or security features.</li>
       </ul>
@@ -208,9 +208,9 @@ export default function TermsOfServicePage() {
       </p>
       <blockquote>
         <p>
-          NoteFlow
+          DevTalk
           <br />
-          Email: support@noteflow.app
+          Email: support@devtalk.app
         </p>
       </blockquote>
     </LegalLayout>

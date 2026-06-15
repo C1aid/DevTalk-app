@@ -2,24 +2,23 @@ import Link from "next/link";
 import { LegalLayout } from "@/components/legal/legal-layout";
 
 export const metadata = {
-  title: "Privacy Policy – NoteFlow",
-  description: "Privacy Policy for NoteFlow collaborative note-taking platform.",
+  title: "Privacy Policy – DevTalk",
+  description: "Privacy Policy for DevTalk collaborative team chat platform.",
 };
 
 export default function PrivacyPolicyPage() {
   return (
     <LegalLayout title="Privacy Policy" lastUpdated="June 12, 2026">
       <p>
-        This Privacy Notice for NoteFlow (&quot;we,&quot; &quot;us,&quot; or
+        This Privacy Notice for DevTalk (&quot;we,&quot; &quot;us,&quot; or
         &quot;our&quot;) describes how and why we might access, collect, store,
         use, and/or share (&quot;process&quot;) your personal information when
         you use our services (&quot;Services&quot;), including when you:
       </p>
       <ul>
-        <li>Visit our website or use the NoteFlow application</li>
+        <li>Visit our website or use the DevTalk application</li>
         <li>
-          Create an account, take notes, collaborate with others, or subscribe
-          to Premium
+          Create an account, join channels, send messages, or subscribe to Pro
         </li>
         <li>Contact us for support or marketing communications</li>
       </ul>
@@ -33,7 +32,7 @@ export default function PrivacyPolicyPage() {
       <ul>
         <li>
           <strong>What personal information do we process?</strong> Account
-          details, note content you create, usage data, and payment information
+          details, messages and channel content you create, usage data, and payment information
           processed by Stripe.
         </li>
         <li>
@@ -99,12 +98,12 @@ export default function PrivacyPolicyPage() {
       <ul>
         <li>Name and email address</li>
         <li>Account credentials</li>
-        <li>Notes, titles, and content you create</li>
-        <li>Collaboration and sharing preferences</li>
+        <li>Messages and channel content you create</li>
+        <li>Channel membership and visibility preferences</li>
         <li>Support messages and feedback</li>
       </ul>
       <p>
-        <strong>Payment data.</strong> If you purchase Premium, payment
+        <strong>Payment data.</strong> If you purchase Pro, payment
         information is collected and processed by Stripe. We do not store full
         payment card details on our servers. See{" "}
         <a
@@ -135,8 +134,8 @@ export default function PrivacyPolicyPage() {
       <p>We process your information to:</p>
       <ul>
         <li>Create and manage your account</li>
-        <li>Store, sync, and display your notes</li>
-        <li>Enable real-time collaboration and sharing on Premium plans</li>
+        <li>Store, sync, and display your messages and channels</li>
+        <li>Enable real-time messaging on Pro plans</li>
         <li>Process subscriptions and payments via Stripe</li>
         <li>Send service-related communications</li>
         <li>Respond to support requests</li>
@@ -165,8 +164,8 @@ export default function PrivacyPolicyPage() {
         transfer such as a merger or acquisition.
       </p>
       <p>
-        When you share notes with collaborators, the content you choose to share
-        is visible to those users according to the permissions you set.
+        When you join channels or send messages, the content you post is visible
+        to other members of those channels according to channel visibility settings.
       </p>
 
       <h2 id="social">4. How do we handle social logins?</h2>
@@ -192,7 +191,7 @@ export default function PrivacyPolicyPage() {
           <strong>Account data:</strong> retained while your account is active
         </li>
         <li>
-          <strong>Notes and content:</strong> retained until you delete them or
+          <strong>Messages and content:</strong> retained until you delete them or
           close your account
         </li>
         <li>
@@ -240,12 +239,12 @@ export default function PrivacyPolicyPage() {
         request data portability.
       </p>
       <p>
-        To exercise your rights, contact us at support@noteflow.app. We will
+        To exercise your rights, contact us at support@devtalk.app. We will
         respond in accordance with applicable data protection laws.
       </p>
       <p>
         You can update account information from your settings page. To delete
-        your account and associated data, contact us at support@noteflow.app.
+        your account and associated data, contact us at support@devtalk.app.
       </p>
 
       <h2 id="updates">9. Do we make updates to this notice?</h2>
@@ -263,9 +262,9 @@ export default function PrivacyPolicyPage() {
       </p>
       <blockquote>
         <p>
-          NoteFlow
+          DevTalk
           <br />
-          Email: support@noteflow.app
+          Email: support@devtalk.app
         </p>
       </blockquote>
       <p>

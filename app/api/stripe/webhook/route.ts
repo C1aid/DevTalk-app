@@ -1,9 +1,32 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { activatePremiumFromCheckoutSession } from "@/lib/stripe/activate-premium";
+import { activateProFromCheckoutSession } from "@/lib/stripe/activate-pro";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SubscriptionTier } from "@/lib/types/database";
+
+async function resolveUserIdFromSubscription(
+  subscription: Stripe.Subscription,
+  admin: ReturnType<typeof createAdminClient>,
+): Promise<string | null> {
+  const metadataUserId = subscription.metadata?.supabase_user_id;
+  if (metadataUserId) return metadataUserId;
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer?.id;
+
+  if (!customerId) return null;
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("stripe_customer_id", customerId)
+    .maybeSingle();
+
+  return profile?.id ?? null;
+}
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -37,7 +60,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing user ID" }, { status: 400 });
     }
 
-    await activatePremiumFromCheckoutSession(session, userId);
+    await activateProFromCheckoutSession(session, userId);
   }
 
   if (
@@ -46,7 +69,7 @@ export async function POST(request: Request) {
   ) {
     const subscription = event.data.object as Stripe.Subscription;
     const status = subscription.status;
-    const userId = subscription.metadata?.supabase_user_id;
+    const userId = await resolveUserIdFromSubscription(subscription, admin);
 
     if (userId) {
       const isActive = status === "active" || status === "trialing";
@@ -54,7 +77,7 @@ export async function POST(request: Request) {
       await admin
         .from("profiles")
         .update({
-          subscription_tier: (isActive ? "premium" : "free") as SubscriptionTier,
+          subscription_tier: (isActive ? "pro" : "free") as SubscriptionTier,
         })
         .eq("id", userId);
 

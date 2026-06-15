@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { AppBackground } from "@/components/app-background";
 import { Providers } from "@/components/providers";
@@ -16,9 +16,15 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NoteFlow – Collaborative Notes",
+  title: "DevTalk – Team Chat for Developers",
   description:
-    "A modern collaborative note-taking SaaS with real-time editing and subscription plans.",
+    "Real-time team chat with channels, threads, code blocks, and GitHub previews. Free and Pro plans.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

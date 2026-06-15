@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   AuthDivider,
@@ -20,8 +20,10 @@ import {
 } from "@/components/auth/auth-ui";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { getSafeRedirect } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/client";
 import {
   formatAuthError,
@@ -36,7 +38,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const redirect = searchParams.get("redirect") ?? "/notes";
+  const redirect = getSafeRedirect(searchParams.get("redirect"));
 
   const {
     register,
@@ -45,6 +47,16 @@ export default function LoginForm() {
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
+
+  useEffect(() => {
+    if (searchParams.get("error") === "auth_callback_error") {
+      toast({
+        title: "Sign in failed",
+        description: "Could not complete authentication. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast]);
 
   const signInWithOAuth = async (provider: "google" | "github") => {
     const configError = getSupabaseConfigError();
@@ -61,7 +73,7 @@ export default function LoginForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
       },
     });
 
@@ -97,7 +109,7 @@ export default function LoginForm() {
       if (error) {
         toast({
           title: "Sign in failed",
-          description: formatSupabaseAuthError(error.message),
+          description: formatSupabaseAuthError(error.message, "login"),
           variant: "destructive",
         });
         return;
@@ -123,7 +135,7 @@ export default function LoginForm() {
         <div className="mb-8">
           <h1 className={authHeadingClass}>Welcome back</h1>
           <p className={authDescriptionClass}>
-            Sign in to your NoteFlow account.
+            Sign in to your DevTalk account.
           </p>
         </div>
 
@@ -152,12 +164,16 @@ export default function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className={authLabelClass}>
-              Password
-            </Label>
-            <Input
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className={authLabelClass}>
+                Password
+              </Label>
+              <Link href="/forgot-password" className="text-xs text-gray-500 hover:text-gray-900">
+                Forgot password?
+              </Link>
+            </div>
+            <PasswordInput
               id="password"
-              type="password"
               className={authInputClass}
               {...register("password")}
             />

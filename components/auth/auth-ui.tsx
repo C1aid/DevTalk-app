@@ -54,7 +54,7 @@ type OAuthButtonsProps = {
 
 export function OAuthButtons({ onGoogle, onGithub, className }: OAuthButtonsProps) {
   return (
-    <div className={cn("grid grid-cols-2 gap-3", className)}>
+    <div className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2", className)}>
       <button type="button" className={oauthButtonClass} onClick={onGithub}>
         <GitHubIcon />
         Github

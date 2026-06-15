@@ -17,17 +17,33 @@ export const signupSchema = z
     path: ["confirmPassword"],
   });
 
-export const noteSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200),
-  content: z.record(z.unknown()).optional(),
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
 });
 
-export const collaboratorSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  permission: z.enum(["read", "write"]),
-});
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(6, "Current password is required"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
-export type NoteInput = z.infer<typeof noteSchema>;
-export type CollaboratorInput = z.infer<typeof collaboratorSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { retrieveAndActivateCheckoutSession } from "@/lib/stripe/activate-premium";
+import { retrieveAndActivateCheckoutSession } from "@/lib/stripe/activate-pro";
 import { createClient } from "@/lib/supabase/server";
 
 const bodySchema = z.object({
