@@ -302,6 +302,21 @@
     }
   }
 
+  .motion-reveal {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-y, 28px), 0);
+    transition:
+      opacity 0.9s var(--ease-smooth),
+      transform 0.9s var(--ease-smooth);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  .motion-reveal-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -309,10 +324,12 @@
 
     .hero-char,
     .motion-fade,
+    .motion-reveal,
     .auth-code-panel {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
+      transition: none !important;
     }
 
     .faq-content,

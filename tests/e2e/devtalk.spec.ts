@@ -15,14 +15,16 @@ test.describe("Auth pages", () => {
   test("login page renders form", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
-    await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
+    await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
   });
 
   test("signup page renders form", async ({ page }) => {
     await page.goto("/signup");
     await expect(page.getByRole("heading", { name: /create an account/i })).toBeVisible();
-    await expect(page.getByLabel("Confirm password")).toBeVisible();
+    await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Confirm Password", { exact: true })).toBeVisible();
   });
 });
 

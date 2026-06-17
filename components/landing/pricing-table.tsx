@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Check, Minus } from "lucide-react";
+import { Reveal } from "@/components/landing/motion";
 import { PricingVideoBackground } from "@/components/landing/pricing-video-background";
 import { Button } from "@/components/ui/button";
 import { PRO_PRICE_MONTHLY } from "@/lib/types/database";
@@ -60,7 +61,7 @@ export function PricingTable() {
       <PricingVideoBackground />
 
       <div className="container relative z-10 mx-auto px-4">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
             Pricing
           </p>
@@ -70,10 +71,11 @@ export function PricingTable() {
           <p className="mt-4 text-muted-foreground">
             Start free. Upgrade when you need unlimited history and channels.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mx-auto mt-10 grid max-w-6xl gap-4 sm:mt-16 sm:gap-6 lg:grid-cols-3">
-          <div className="glass-card flex flex-col p-6 sm:p-8">
+          <Reveal delay={0} y={24}>
+            <div className="glass-card flex h-full flex-col p-6 sm:p-8">
             <p className="text-lg font-semibold text-white">Free</p>
             <p className="mt-1 text-sm text-muted-foreground">
               For small teams getting started
@@ -90,9 +92,11 @@ export function PricingTable() {
             >
               Get started
             </Link>
-          </div>
+            </div>
+          </Reveal>
 
-          <div className="glass-card relative flex flex-col border-primary/30 p-6 ring-1 ring-primary/25 sm:p-8">
+          <Reveal delay={100} y={24}>
+            <div className="glass-card relative flex h-full flex-col border-primary/30 p-6 ring-1 ring-primary/25 sm:p-8">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-black">
               Recommended
             </span>
@@ -113,9 +117,11 @@ export function PricingTable() {
             <p className="mt-3 text-center text-xs text-muted-foreground">
               Stripe test mode — no real charge
             </p>
-          </div>
+            </div>
+          </Reveal>
 
-          <div className="glass-card flex flex-col p-6 sm:p-8">
+          <Reveal delay={200} y={24}>
+            <div className="glass-card flex h-full flex-col p-6 sm:p-8">
             <p className="text-lg font-semibold text-white">Business+</p>
             <p className="mt-1 text-sm text-muted-foreground">
               For larger organizations
@@ -133,10 +139,12 @@ export function PricingTable() {
               Contact Sales
             </Button>
             <p className="mt-3 text-center text-xs text-muted-foreground">Coming soon</p>
-          </div>
+            </div>
+          </Reveal>
         </div>
 
-        <div className="mx-auto mt-10 max-w-6xl space-y-3 md:hidden">
+        <Reveal delay={120} y={20}>
+          <div className="mx-auto mt-10 max-w-6xl space-y-3 md:hidden">
           {features.map((row) => (
             <div
               key={row.label}
@@ -165,9 +173,11 @@ export function PricingTable() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </Reveal>
 
-        <div className="glass-card mx-auto mt-10 hidden max-w-6xl overflow-hidden sm:mt-16 md:block">
+        <Reveal delay={180} y={24}>
+          <div className="glass-card mx-auto mt-10 hidden max-w-6xl overflow-hidden sm:mt-16 md:block">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
@@ -202,7 +212,8 @@ export function PricingTable() {
               </tbody>
             </table>
           </div>
-        </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

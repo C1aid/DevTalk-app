@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { Reveal } from "@/components/landing/motion";
 import { cn } from "@/lib/utils";
 
 type FaqItem = {
@@ -30,7 +31,8 @@ export function FaqAccordion({ items }: { items: FaqItem[] }) {
         const isOpen = openItems.has(index);
 
         return (
-          <div key={item.question} className="py-5">
+          <Reveal key={item.question} as="div" delay={index * 70} y={16}>
+            <div className="py-5">
             <button
               type="button"
               className="flex w-full items-center justify-between gap-4 rounded-lg text-left text-sm font-medium transition-smooth hover:text-primary sm:text-base"
@@ -53,7 +55,8 @@ export function FaqAccordion({ items }: { items: FaqItem[] }) {
                 </p>
               </div>
             </div>
-          </div>
+            </div>
+          </Reveal>
         );
       })}
     </div>

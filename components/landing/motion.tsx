@@ -1,4 +1,68 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+
+type RevealProps = {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  y?: number;
+  as?: "div" | "section" | "article" | "li" | "footer";
+};
+
+export function Reveal({
+  children,
+  className,
+  delay = 0,
+  y = 28,
+  as: Tag = "div",
+}: RevealProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -8% 0px" },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Tag
+      ref={ref as never}
+      className={cn(
+        "motion-reveal",
+        visible && "motion-reveal-visible",
+        className,
+      )}
+      style={
+        {
+          "--reveal-delay": `${delay}ms`,
+          "--reveal-y": `${y}px`,
+        } as React.CSSProperties
+      }
+    >
+      {children}
+    </Tag>
+  );
+}
 
 type FadeInProps = {
   children: React.ReactNode;

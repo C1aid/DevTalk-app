@@ -8,7 +8,7 @@ export function HeroSection() {
       <HeroVideoBackground />
 
       <div className="relative z-10 min-h-[100dvh] font-[Helvetica_Neue,Helvetica,Arial,sans-serif] font-normal antialiased">
-        <div className="flex min-h-[100dvh] flex-col items-center justify-start px-4 pb-24 pt-28 text-center sm:justify-center sm:px-6 sm:pb-20 sm:pt-24 md:px-12 lg:px-16 lg:pb-0 lg:pt-0">
+        <div className="flex min-h-[100dvh] flex-col items-center justify-center px-4 py-16 text-center sm:px-6 sm:py-20 md:px-12 lg:px-16">
           <div className="flex w-full max-w-4xl flex-col items-center">
             <AnimatedHeading
               text={"Chat that flows\nwith your team."}
