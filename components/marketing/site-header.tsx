@@ -31,7 +31,7 @@ export function SiteHeader({ overlapHero = false }: SiteHeaderProps) {
     "fixed left-0 right-0 top-0 z-50 px-4 pt-4 sm:px-6 sm:pt-6 md:px-12 lg:px-16";
 
   const barClass =
-    "liquid-glass relative flex items-center justify-between rounded-xl px-4 py-2";
+    "site-header-bar liquid-glass relative flex items-center justify-between rounded-xl px-4 py-2";
 
   const navLinkClass =
     "text-sm text-white transition-smooth hover:text-gray-300";
@@ -69,18 +69,17 @@ export function SiteHeader({ overlapHero = false }: SiteHeaderProps) {
         </div>
       </header>
 
-      <header className={cn(shellClass, "md:hidden")}>
-        <div
-          className={cn(
-            "fixed inset-0 z-40 bg-black/65 backdrop-blur-md transition-opacity duration-300",
-            menuOpen
-              ? "pointer-events-auto opacity-100"
-              : "pointer-events-none opacity-0",
-          )}
-          onClick={closeMenu}
-          aria-hidden={!menuOpen}
-        />
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-black/60 backdrop-blur-md transition-opacity duration-300 md:hidden",
+          menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        style={{ transitionTimingFunction: "var(--ease-smooth)" }}
+        onClick={closeMenu}
+        aria-hidden={!menuOpen}
+      />
 
+      <header className={cn(shellClass, "md:hidden")}>
         <div className={cn(barClass, "relative z-50")}>
           <Link
             href="/"
@@ -106,55 +105,49 @@ export function SiteHeader({ overlapHero = false }: SiteHeaderProps) {
 
         <div
           className={cn(
-            "relative z-50 grid transition-all duration-300",
+            "relative z-50 mt-3 origin-top transition-[opacity,transform] duration-300",
             menuOpen
-              ? "pointer-events-auto mt-3 grid-rows-[1fr] opacity-100"
-              : "pointer-events-none mt-0 grid-rows-[0fr] opacity-0",
+              ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+              : "pointer-events-none -translate-y-2 scale-[0.98] opacity-0",
           )}
           style={{ transitionTimingFunction: "var(--ease-smooth)" }}
           aria-hidden={!menuOpen}
         >
-          <div className="min-h-0 overflow-hidden">
-            <div
-              className={cn(
-                "liquid-glass overflow-hidden rounded-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]",
-              )}
-            >
-              <nav className="px-3 pb-1 pt-2">
-                {navLinks.map(({ label, href }) => (
-                  <a
-                    key={href}
-                    href={href}
-                    className="group flex items-center justify-between rounded-xl px-3 py-3.5 transition-smooth hover:bg-white/[0.06] active:bg-white/[0.08]"
-                    onClick={closeMenu}
-                  >
-                    <span className="text-[17px] font-medium tracking-tight text-white">
-                      {label}
-                    </span>
-                    <ArrowRight
-                      className="size-4 text-white/25 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-white/60"
-                      aria-hidden
-                    />
-                  </a>
-                ))}
-              </nav>
+          <div className="liquid-glass overflow-hidden rounded-2xl shadow-[0_28px_80px_rgba(0,0,0,0.55)]">
+            <nav className="px-3 pb-1 pt-2">
+              {navLinks.map(({ label, href }) => (
+                <a
+                  key={href}
+                  href={href}
+                  className="group flex items-center justify-between rounded-xl px-3 py-3.5 transition-smooth hover:bg-white/[0.06] active:bg-white/[0.08]"
+                  onClick={closeMenu}
+                >
+                  <span className="text-[17px] font-medium tracking-tight text-white">
+                    {label}
+                  </span>
+                  <ArrowRight
+                    className="size-4 text-white/25 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-white/60"
+                    aria-hidden
+                  />
+                </a>
+              ))}
+            </nav>
 
-              <div className="space-y-2.5 border-t border-white/10 p-4">
-                <Link
-                  href="/signup"
-                  className="flex h-12 w-full items-center justify-center rounded-xl bg-white text-[15px] font-medium text-black transition-smooth hover:bg-gray-100"
-                  onClick={closeMenu}
-                >
-                  Get started free
-                </Link>
-                <Link
-                  href="/login"
-                  className="liquid-glass flex h-12 w-full items-center justify-center rounded-xl border border-white/15 text-[15px] font-medium text-white transition-smooth hover:bg-white/[0.06]"
-                  onClick={closeMenu}
-                >
-                  Sign in
-                </Link>
-              </div>
+            <div className="space-y-2.5 p-4 pt-0">
+              <Link
+                href="/signup"
+                className="flex h-12 w-full items-center justify-center rounded-xl bg-white text-[15px] font-medium text-black transition-smooth hover:bg-gray-100"
+                onClick={closeMenu}
+              >
+                Get started free
+              </Link>
+              <Link
+                href="/login"
+                className="liquid-glass flex h-12 w-full items-center justify-center rounded-xl border border-white/15 text-[15px] font-medium text-white transition-smooth hover:bg-white/[0.06]"
+                onClick={closeMenu}
+              >
+                Sign in
+              </Link>
             </div>
           </div>
         </div>

@@ -10,29 +10,39 @@ import { SiteHeader } from "@/components/marketing/site-header";
 
 const faqs = [
   {
-    question: "How does the Free plan work?",
+    question: "Do I need a credit card to get started?",
     answer:
-      "Free includes 90 days of message history, up to 10 channels, threads, reactions, Markdown, and GitHub link previews.",
+      "No. Create an account, set up your workspace, and start messaging your team for free. A credit card is only required if you decide to upgrade to Pro.",
+  },
+  {
+    question: "What are the limits on the Free plan?",
+    answer:
+      "Free includes 90 days of message history, up to 10 channels, threads, reactions, Markdown, code blocks, and GitHub link previews. Search is available within your 90-day message window.",
   },
   {
     question: "What do I get with Pro?",
     answer:
-      "Pro unlocks unlimited message history, unlimited channels, and full-text search across all messages.",
+      "Pro removes the Free plan limits: unlimited message history, unlimited channels, and full-text search across your entire archive. Pro also includes priority support.",
   },
   {
-    question: "Is there any AI?",
+    question: "How much does Pro cost?",
     answer:
-      "No. DevTalk is a clean team chat — no AI summaries, bots, or search upsells.",
+      "Pro is $8 USD per month, billed monthly per account through Stripe. You can upgrade at any time from Settings in your dashboard.",
   },
   {
-    question: "How does billing work?",
+    question: "Can I create private channels?",
     answer:
-      "Pro is $8/month via Stripe Checkout in test mode. Use test card 4242 4242 4242 4242 — no real charge.",
+      "Yes. Channels can be public to everyone in your workspace or private for invite-only access — useful for sensitive discussions or smaller group coordination.",
   },
   {
-    question: "Can I self-host?",
+    question: "What happens to messages older than 90 days on Free?",
     answer:
-      "DevTalk runs on Next.js, Supabase, and Stripe. Clone the repo and deploy to Vercel with your own Supabase project.",
+      "On the Free plan, messages older than 90 days are no longer visible in your workspace or search results. Your data is retained — upgrading to Pro restores access to your full message history.",
+  },
+  {
+    question: "Does DevTalk include AI features?",
+    answer:
+      "No. DevTalk is focused on clear, reliable team chat for developers. There are no AI summaries, assistant bots, or paid AI add-ons.",
   },
 ];
 
@@ -47,11 +57,11 @@ export default function LandingPage() {
         <FeaturesSection />
         <PricingTable />
 
-        <section id="faq" className="border-t border-border py-16 md:py-24">
+        <section id="faq" className="scroll-mt-24 border-t border-border py-16 md:py-24">
           <div className="container mx-auto px-4">
             <Reveal className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
-                Frequently Asked Questions
+                Frequently asked questions
               </h2>
             </Reveal>
             <FaqAccordion items={faqs} />

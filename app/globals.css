@@ -58,7 +58,7 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
@@ -153,6 +153,8 @@
     box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
+    transform: translateZ(0);
+    isolation: isolate;
   }
 
   .liquid-glass::before {
@@ -220,11 +222,18 @@
   }
 
   .hero-video-wrap {
-    contain: strict;
+    contain: paint;
+    pointer-events: none;
   }
 
   .hero-video {
     transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    object-fit: cover;
+  }
+
+  .site-header-bar {
+    transform: translateZ(0);
     backface-visibility: hidden;
   }
 
@@ -309,7 +318,6 @@
       opacity 0.9s var(--ease-smooth),
       transform 0.9s var(--ease-smooth);
     transition-delay: var(--reveal-delay, 0ms);
-    will-change: opacity, transform;
   }
 
   .motion-reveal-visible {

@@ -53,7 +53,7 @@ const features: {
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-16 md:py-24 lg:py-32">
+    <section id="features" className="scroll-mt-24 py-16 md:py-24 lg:py-32">
       <div className="container mx-auto px-4">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">

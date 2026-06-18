@@ -37,7 +37,7 @@ export function Reveal({
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: "0px 0px -8% 0px" },
+      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
     );
 
     observer.observe(el);
@@ -106,25 +106,32 @@ export function AnimatedHeading({
       aria-label={text.replace(/\n/g, " ")}
     >
       {lines.map((line, lineIndex) => (
-        <div key={lineIndex} className="flex justify-center whitespace-nowrap">
-          {line.split("").map((char) => {
-            const index = charIndex++;
-            return (
-              <span
-                key={index}
-                className="hero-char"
-                style={
-                  {
-                    "--char-index": index,
-                    "--hero-delay": `${delay}ms`,
-                    "--char-step": `${charDelay}ms`,
-                  } as React.CSSProperties
-                }
-              >
-                {char === " " ? "\u00A0" : char}
-              </span>
-            );
-          })}
+        <div
+          key={lineIndex}
+          className="flex flex-wrap justify-center gap-x-[0.28em]"
+        >
+          {line.split(/\s+/).filter(Boolean).map((word, wordIndex) => (
+            <span key={wordIndex} className="inline-flex whitespace-nowrap">
+              {word.split("").map((char) => {
+                const index = charIndex++;
+                return (
+                  <span
+                    key={index}
+                    className="hero-char"
+                    style={
+                      {
+                        "--char-index": index,
+                        "--hero-delay": `${delay}ms`,
+                        "--char-step": `${charDelay}ms`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    {char}
+                  </span>
+                );
+              })}
+            </span>
+          ))}
         </div>
       ))}
     </h1>

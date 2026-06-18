@@ -19,14 +19,14 @@ export function LandingStats() {
               y={16}
               className="flex flex-col items-center bg-black px-3 py-8 text-center sm:px-4 sm:py-10"
             >
-                <p className="text-xl font-medium tracking-tight text-white sm:text-2xl md:text-3xl">
-                  {stat.value}
-                </p>
-                <p className="mt-1.5 text-xs uppercase tracking-[0.14em] text-gray-500">
-                  {stat.label}
-                </p>
-              </Reveal>
-            ))}
+              <p className="text-xl font-medium tracking-tight text-white sm:text-2xl md:text-3xl">
+                {stat.value}
+              </p>
+              <p className="mt-1.5 text-xs uppercase tracking-[0.14em] text-gray-500">
+                {stat.label}
+              </p>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>

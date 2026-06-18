@@ -11,17 +11,43 @@ export function HeroVideoBackground() {
     const video = videoRef.current;
     if (!video) return;
 
+    const section = video.closest("section");
+    if (!section) return;
+
     const play = () => {
       void video.play().catch(() => {});
     };
 
     if (video.readyState >= 2) {
       play();
-      return;
+    } else {
+      video.addEventListener("loadeddata", play, { once: true });
     }
 
-    video.addEventListener("loadeddata", play, { once: true });
-    return () => video.removeEventListener("loadeddata", play);
+    const pauseOnScroll = () => {
+      video.pause();
+    };
+
+    window.addEventListener("scroll", pauseOnScroll, { passive: true, once: true });
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          play();
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.35 },
+    );
+
+    observer.observe(section);
+
+    return () => {
+      observer.disconnect();
+      video.removeEventListener("loadeddata", play);
+      window.removeEventListener("scroll", pauseOnScroll);
+    };
   }, []);
 
   return (
@@ -32,8 +58,8 @@ export function HeroVideoBackground() {
         loop
         muted
         playsInline
-        preload="metadata"
-        className="hero-video absolute inset-0 h-full w-full object-cover"
+        preload="auto"
+        className="hero-video absolute inset-0 h-full w-full"
       >
         <source src={HERO_VIDEO} type="video/mp4" />
       </video>

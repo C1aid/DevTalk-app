@@ -56,7 +56,7 @@ export function PricingTable() {
   return (
     <section
       id="pricing"
-      className="relative overflow-hidden border-y border-white/8 py-16 md:py-24 lg:py-32"
+      className="relative scroll-mt-24 overflow-hidden border-y border-white/8 py-16 md:py-24 lg:py-32"
     >
       <PricingVideoBackground />
 
