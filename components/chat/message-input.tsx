@@ -1,47 +1,38 @@
 "use client";
 
-import {
-  AtSign,
-  Bold,
-  ChevronDown,
-  Code,
-  CodeXml,
-  Italic,
-  Link,
-  List,
-  ListOrdered,
-  Loader2,
-  Mic,
-  PenLine,
-  Plus,
-  Send,
-  Smile,
-  Strikethrough,
-  TextQuote,
-  Type,
-  Video,
-} from "lucide-react";
+import { Code, CodeXml, Loader2, Mic, Paperclip, Send, Smile, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
+import { EmojiPickerPanel } from "@/components/chat/emoji-picker-panel";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
+  formatFileSize,
+  MAX_ATTACHMENTS_PER_MESSAGE,
+  MAX_ATTACHMENT_SIZE,
+  type MessageAttachment,
+} from "@/lib/chat/attachments";
+import {
   insertAtCursor,
   insertCodeBlock,
-  insertLinePrefix,
-  insertLink,
   wrapSelection,
   type FormatResult,
 } from "@/lib/chat/markdown-format";
 import { cn } from "@/lib/utils";
 
-const EMOJI_PICKER = [
-  "😀", "😂", "😍", "🥳", "👍", "👎", "❤️", "🔥", "✨", "🎉",
-  "🚀", "💯", "👀", "🙌", "😢", "😮", "🤔", "👏", "✅", "❌",
-];
+export type SendMessagePayload = {
+  content: string;
+  attachments?: MessageAttachment[];
+};
+
+type PendingFile = {
+  id: string;
+  file: File;
+};
 
 type MessageInputProps = {
-  onSend: (content: string) => Promise<void>;
-  onAlsoSendToChannel?: (content: string) => Promise<void>;
+  channelId: string;
+  onSend: (payload: SendMessagePayload) => Promise<void>;
+  onAlsoSendToChannel?: (payload: SendMessagePayload) => Promise<void>;
   channelName?: string;
   isThread?: boolean;
   placeholder?: string;
@@ -54,17 +45,28 @@ type ToolbarButtonProps = {
   onClick: () => void;
   children: React.ReactNode;
   active?: boolean;
+  buttonRef?: React.Ref<HTMLButtonElement>;
+  disabled?: boolean;
 };
 
-function ToolbarButton({ label, onClick, children, active }: ToolbarButtonProps) {
+function ToolbarButton({
+  label,
+  onClick,
+  children,
+  active,
+  buttonRef,
+  disabled,
+}: ToolbarButtonProps) {
   return (
     <button
+      ref={buttonRef}
       type="button"
       title={label}
       aria-label={label}
       onClick={onClick}
+      disabled={disabled}
       className={cn(
-        "flex size-8 items-center justify-center rounded-lg text-gray-400 transition-smooth hover:bg-white/10 hover:text-white",
+        "flex size-8 items-center justify-center rounded-lg text-gray-400 transition-smooth hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40",
         active && "bg-white/10 text-white",
       )}
     >
@@ -74,10 +76,11 @@ function ToolbarButton({ label, onClick, children, active }: ToolbarButtonProps)
 }
 
 function ToolbarDivider() {
-  return <span className="mx-0.5 h-5 w-px bg-white/10" />;
+  return <span className="mx-1 h-5 w-px bg-white/10" />;
 }
 
 export function MessageInput({
+  channelId,
   onSend,
   onAlsoSendToChannel,
   channelName,
@@ -88,11 +91,16 @@ export function MessageInput({
 }: MessageInputProps) {
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const [content, setContent] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [isSending, setIsSending] = useState(false);
-  const [showFormatting, setShowFormatting] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [alsoSendToChannel, setAlsoSendToChannel] = useState(false);
+
+  const canSend =
+    content.trim().length > 0 || pendingFiles.length > 0;
 
   const applyFormat = useCallback((result: FormatResult) => {
     setContent(result.value);
@@ -118,20 +126,102 @@ export function MessageInput({
     setShowEmojiPicker(false);
   };
 
+  const uploadAttachments = async (files: PendingFile[]) => {
+    const uploaded: MessageAttachment[] = [];
+
+    for (const { file } of files) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("channelId", channelId);
+
+      const res = await fetch("/api/attachments", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = (await res.json()) as MessageAttachment & { error?: string };
+
+      if (!res.ok) {
+        throw new Error(data.error ?? `Failed to upload ${file.name}`);
+      }
+
+      uploaded.push(data);
+    }
+
+    return uploaded;
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.target.files ?? []);
+    event.target.value = "";
+
+    if (selected.length === 0) return;
+
+    const next = [...pendingFiles];
+    const errors: string[] = [];
+
+    for (const file of selected) {
+      if (next.length >= MAX_ATTACHMENTS_PER_MESSAGE) {
+        errors.push(`Maximum ${MAX_ATTACHMENTS_PER_MESSAGE} files per message`);
+        break;
+      }
+
+      if (file.size > MAX_ATTACHMENT_SIZE) {
+        errors.push(`${file.name} exceeds 50 MB`);
+        continue;
+      }
+
+      next.push({
+        id: `${file.name}-${file.size}-${file.lastModified}`,
+        file,
+      });
+    }
+
+    setPendingFiles(next);
+
+    if (errors.length > 0) {
+      toast({
+        title: "Some files were skipped",
+        description: errors.join(". "),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removePendingFile = (id: string) => {
+    setPendingFiles((files) => files.filter((file) => file.id !== id));
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    const trimmed = content.trim();
-    if (!trimmed || isSending || disabled) return;
+    if (!canSend || isSending || disabled) return;
 
     setIsSending(true);
     try {
-      await onSend(trimmed);
+      const attachments =
+        pendingFiles.length > 0 ? await uploadAttachments(pendingFiles) : undefined;
+
+      const payload: SendMessagePayload = {
+        content: content.trim(),
+        attachments,
+      };
+
+      await onSend(payload);
+
       if (isThread && alsoSendToChannel && onAlsoSendToChannel) {
-        await onAlsoSendToChannel(trimmed);
+        await onAlsoSendToChannel(payload);
       }
+
       setContent("");
+      setPendingFiles([]);
       setAlsoSendToChannel(false);
       setShowEmojiPicker(false);
+    } catch (err) {
+      toast({
+        title: "Could not send message",
+        description: err instanceof Error ? err.message : "Something went wrong",
+        variant: "destructive",
+      });
     } finally {
       setIsSending(false);
     }
@@ -159,57 +249,46 @@ export function MessageInput({
         className,
       )}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+
+      {showEmojiPicker && (
+        <EmojiPickerPanel
+          onSelect={insertEmoji}
+          onClose={() => setShowEmojiPicker(false)}
+          anchorRef={emojiButtonRef}
+          className="absolute bottom-full left-3 mb-2 sm:left-4"
+        />
+      )}
+
       <div className="liquid-glass overflow-hidden rounded-xl">
-        {showFormatting && (
-          <div className="flex flex-wrap items-center gap-0.5 border-b border-white/10 px-2 py-1.5">
-            <ToolbarButton label="Bold" onClick={() => withTextarea((t) => wrapSelection(t, "**"))}>
-              <Bold className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton label="Italic" onClick={() => withTextarea((t) => wrapSelection(t, "_"))}>
-              <Italic className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              label="Strikethrough"
-              onClick={() => withTextarea((t) => wrapSelection(t, "~~"))}
-            >
-              <Strikethrough className="size-4" />
-            </ToolbarButton>
-            <ToolbarDivider />
-            <ToolbarButton label="Link" onClick={() => withTextarea(insertLink)}>
-              <Link className="size-4" />
-            </ToolbarButton>
-            <ToolbarDivider />
-            <ToolbarButton
-              label="Numbered list"
-              onClick={() => withTextarea((t) => insertLinePrefix(t, "1. "))}
-            >
-              <ListOrdered className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              label="Bulleted list"
-              onClick={() => withTextarea((t) => insertLinePrefix(t, "- "))}
-            >
-              <List className="size-4" />
-            </ToolbarButton>
-            <ToolbarDivider />
-            <ToolbarButton
-              label="Blockquote"
-              onClick={() => withTextarea((t) => insertLinePrefix(t, "> "))}
-            >
-              <TextQuote className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              label="Code block"
-              onClick={() => withTextarea(insertCodeBlock)}
-            >
-              <CodeXml className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              label="Inline code"
-              onClick={() => withTextarea((t) => wrapSelection(t, "`"))}
-            >
-              <Code className="size-4" />
-            </ToolbarButton>
+        {pendingFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 border-b border-white/10 px-3 py-2">
+            {pendingFiles.map(({ id, file }) => (
+              <div
+                key={id}
+                className="flex max-w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-gray-200"
+              >
+                <Paperclip className="size-3.5 shrink-0 text-gray-400" />
+                <span className="truncate">{file.name}</span>
+                <span className="shrink-0 text-gray-500">
+                  {formatFileSize(file.size)}
+                </span>
+                <button
+                  type="button"
+                  className="rounded-md p-0.5 text-gray-400 transition-smooth hover:bg-white/10 hover:text-white"
+                  onClick={() => removePendingFile(id)}
+                  aria-label={`Remove ${file.name}`}
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
@@ -239,92 +318,58 @@ export function MessageInput({
         )}
 
         <div className="flex items-center justify-between border-t border-white/10 px-2 py-1.5">
-          <div className="relative flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5">
             <ToolbarButton
-              label="Add attachment"
-              onClick={() => showComingSoon("File attachments")}
+              label="Attach file"
+              disabled={disabled || isSending || pendingFiles.length >= MAX_ATTACHMENTS_PER_MESSAGE}
+              onClick={() => fileInputRef.current?.click()}
             >
-              <Plus className="size-4" />
+              <Paperclip className="size-4" />
             </ToolbarButton>
             <ToolbarButton
-              label="Toggle formatting"
-              active={showFormatting}
-              onClick={() => setShowFormatting((v) => !v)}
-            >
-              <Type className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              label="Emoji"
-              active={showEmojiPicker}
-              onClick={() => setShowEmojiPicker((v) => !v)}
-            >
-              <Smile className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              label="Mention someone"
-              onClick={() => withTextarea((t) => insertAtCursor(t, "@"))}
-            >
-              <AtSign className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              label="Record video clip"
-              onClick={() => showComingSoon("Video clips")}
-            >
-              <Video className="size-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              label="Record audio clip"
-              onClick={() => showComingSoon("Audio clips")}
+              label="Voice message"
+              onClick={() => showComingSoon("Voice messages")}
             >
               <Mic className="size-4" />
             </ToolbarButton>
             <ToolbarButton
-              label="Create a post"
-              onClick={() => showComingSoon("Posts")}
+              label="Emoji"
+              active={showEmojiPicker}
+              buttonRef={emojiButtonRef}
+              onClick={() => setShowEmojiPicker((v) => !v)}
             >
-              <PenLine className="size-4" />
+              <Smile className="size-4" />
             </ToolbarButton>
 
-            {showEmojiPicker && (
-              <div className="glass-card absolute bottom-full left-0 z-20 mb-2 grid w-56 grid-cols-5 gap-0.5 p-2 sm:w-64">
-                {EMOJI_PICKER.map((emoji) => (
-                  <button
-                    key={emoji}
-                    type="button"
-                    className="rounded-lg p-1.5 text-lg transition-smooth hover:bg-white/10"
-                    onClick={() => insertEmoji(emoji)}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            )}
+            <ToolbarDivider />
+
+            <ToolbarButton
+              label="Inline code"
+              onClick={() => withTextarea((t) => wrapSelection(t, "`", "`", "code"))}
+            >
+              <Code className="size-4" />
+            </ToolbarButton>
+            <ToolbarButton
+              label="Code block"
+              onClick={() => withTextarea(insertCodeBlock)}
+            >
+              <CodeXml className="size-4" />
+            </ToolbarButton>
           </div>
 
-          <div className="flex items-center overflow-hidden rounded-lg">
-            <Button
-              type="submit"
-              size="icon"
-              className="btn-brand size-8 rounded-none"
-              disabled={disabled || isSending || !content.trim()}
-            >
-              {isSending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Send className="size-4" />
-              )}
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              className="btn-brand size-8 rounded-none border-l border-black/15 hover:bg-gray-100"
-              disabled={disabled || isSending || !content.trim()}
-              onClick={() => void handleSubmit()}
-              title="Send message"
-            >
-              <ChevronDown className="size-4" />
-            </Button>
-          </div>
+          <Button
+            type="submit"
+            size="icon"
+            className="btn-brand size-8 rounded-lg"
+            disabled={disabled || isSending || !canSend}
+            title="Send message"
+          >
+            {isSending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
+          </Button>
         </div>
       </div>
     </form>

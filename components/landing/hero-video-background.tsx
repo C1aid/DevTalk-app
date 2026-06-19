@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
-const HERO_VIDEO = "/videos/hero-bg.mp4";
+import { LANDING_VIDEOS } from "@/lib/brand/assets";
+
+const HERO_VIDEO = LANDING_VIDEOS.hero;
 
 export function HeroVideoBackground() {
   const videoRef = useRef<HTMLVideoElement>(null);

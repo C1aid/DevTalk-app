@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { parseAttachments, type MessageAttachment } from "@/lib/chat/attachments";
 import type { Message, Profile, Reaction } from "@/lib/types/database";
 import { getHistoryCutoff, isProTier, type SubscriptionTier } from "@/lib/types/database";
 
@@ -11,8 +12,16 @@ export type ThreadSummary = {
 export type MessageWithAuthor = Message & {
   author: Pick<Profile, "id" | "email" | "display_name" | "avatar_url">;
   reactions: (Reaction & { user_email?: string })[];
+  attachments: MessageAttachment[];
   thread?: ThreadSummary;
 };
+
+function normalizeMessage(message: MessageWithAuthor): MessageWithAuthor {
+  return {
+    ...message,
+    attachments: parseAttachments(message.attachments),
+  };
+}
 
 type ThreadReplyRow = {
   parent_message_id: string;
@@ -129,7 +138,9 @@ export async function fetchChannelMessages(
   const { data, error } = await query;
   if (error) throw error;
 
-  const messages = (data ?? []) as unknown as MessageWithAuthor[];
+  const messages = ((data ?? []) as unknown as MessageWithAuthor[]).map(
+    normalizeMessage,
+  );
 
   if (!options?.parentId) {
     return attachThreadSummaries(supabase, messages);

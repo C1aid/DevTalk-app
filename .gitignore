@@ -43,6 +43,7 @@ sentry.properties
 .supabase/
 supabase/.branches
 supabase/.temp
+.env.keys
 
 # vercel
 .vercel

@@ -3,11 +3,25 @@ import { z } from "zod";
 import { fetchChannelMessages } from "@/lib/chat/queries";
 import { createClient } from "@/lib/supabase/server";
 
-const createMessageSchema = z.object({
-  channelId: z.string().uuid(),
-  content: z.string().min(1).max(10000),
-  parentMessageId: z.string().uuid().optional(),
+const attachmentSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  path: z.string().min(1).max(500),
+  size: z.number().int().positive().max(52_428_800),
+  mimeType: z.string().min(1).max(255),
 });
+
+const createMessageSchema = z
+  .object({
+    channelId: z.string().uuid(),
+    content: z.string().max(10000).default(""),
+    parentMessageId: z.string().uuid().optional(),
+    attachments: z.array(attachmentSchema).max(10).optional(),
+  })
+  .refine(
+    (data) => data.content.trim().length > 0 || (data.attachments?.length ?? 0) > 0,
+    { message: "Message must include text or at least one attachment" },
+  );
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -75,13 +89,21 @@ export async function POST(request: Request) {
     );
   }
 
+  for (const attachment of parsed.data.attachments ?? []) {
+    const expectedPrefix = `${parsed.data.channelId}/${user.id}/`;
+    if (!attachment.path.startsWith(expectedPrefix)) {
+      return NextResponse.json({ error: "Invalid attachment" }, { status: 403 });
+    }
+  }
+
   const { data, error } = await supabase
     .from("messages")
     .insert({
       channel_id: parsed.data.channelId,
       user_id: user.id,
-      content: parsed.data.content,
+      content: parsed.data.content.trim(),
       parent_message_id: parsed.data.parentMessageId ?? null,
+      attachments: parsed.data.attachments ?? [],
     })
     .select(
       `

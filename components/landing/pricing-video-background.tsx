@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
-const PRICING_VIDEO = "/videos/pricing-bg.mp4";
+import { LANDING_VIDEOS } from "@/lib/brand/assets";
+
+const PRICING_VIDEO = LANDING_VIDEOS.pricing;
 
 export function PricingVideoBackground() {
   const videoRef = useRef<HTMLVideoElement>(null);

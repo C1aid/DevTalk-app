@@ -3,6 +3,7 @@
 import { MessageSquare, Smile } from "lucide-react";
 import { useState } from "react";
 import { MessageContent } from "@/components/chat/message-content";
+import { MessageAttachments } from "@/components/chat/message-attachments";
 import { ThreadSummaryBar } from "@/components/chat/thread-summary-bar";
 import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui/button";
@@ -90,7 +91,8 @@ export function MessageItem({
         </div>
 
         <div className="mt-0.5 text-[15px] leading-relaxed text-gray-100">
-          <MessageContent content={message.content} />
+          {message.content.trim() ? <MessageContent content={message.content} /> : null}
+          <MessageAttachments attachments={message.attachments ?? []} />
         </div>
 
         {Object.keys(grouped).length > 0 && (

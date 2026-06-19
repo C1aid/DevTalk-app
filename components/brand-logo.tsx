@@ -1,34 +1,30 @@
-import { Sparkles } from "lucide-react";
+import Image from "next/image";
+import { BRAND_LOGO_PATH } from "@/lib/brand/assets";
 import { cn } from "@/lib/utils";
 
-const iconSizes = {
-  sm: "size-3.5",
-  md: "size-4",
-  lg: "size-5",
-};
-
-const boxSizes = {
-  sm: "size-7",
-  md: "size-8",
-  lg: "size-9",
-};
+const imageSizes = {
+  sm: 28,
+  md: 36,
+  lg: 44,
+} as const;
 
 export function BrandLogo({
   size = "md",
   className,
 }: {
-  size?: "sm" | "md" | "lg";
+  size?: keyof typeof imageSizes;
   className?: string;
 }) {
+  const px = imageSizes[size];
+
   return (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-white",
-        boxSizes[size],
-        className,
-      )}
-    >
-      <Sparkles className={cn("text-black", iconSizes[size])} />
-    </div>
+    <Image
+      src={BRAND_LOGO_PATH}
+      alt="DevTalk"
+      width={px}
+      height={px}
+      className={cn("shrink-0 object-contain", className)}
+      priority={size === "lg"}
+    />
   );
 }

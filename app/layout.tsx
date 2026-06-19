@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { AppBackground } from "@/components/app-background";
 import { Providers } from "@/components/providers";
+import { BRAND_LOGO_PATH } from "@/lib/brand/assets";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,9 +17,16 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DevTalk – Team Chat for Developers",
+  title: {
+    default: "DevTalk – Team Chat for Developers",
+    template: "%s | DevTalk",
+  },
   description:
     "Real-time team chat with channels, threads, code blocks, and GitHub previews. Free and Pro plans.",
+  icons: {
+    icon: BRAND_LOGO_PATH,
+    apple: BRAND_LOGO_PATH,
+  },
 };
 
 export const viewport: Viewport = {

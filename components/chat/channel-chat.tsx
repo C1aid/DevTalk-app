@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Hash, Loader2, Lock, User } from "lucide-react";
-import { MessageInput } from "@/components/chat/message-input";
+import { MessageInput, type SendMessagePayload } from "@/components/chat/message-input";
 import { MessageList } from "@/components/chat/message-list";
 import { MessageItem } from "@/components/chat/message-item";
 import { ChannelHeader } from "@/components/chat/channel-header";
@@ -159,11 +159,19 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
     };
   }, [channelId, loadMessages, loadThread, threadParentId]);
 
-  const sendMessage = async (content: string, parentMessageId?: string) => {
+  const sendMessage = async (
+    payload: SendMessagePayload,
+    parentMessageId?: string,
+  ) => {
     const res = await fetch("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ channelId, content, parentMessageId }),
+      body: JSON.stringify({
+        channelId,
+        content: payload.content,
+        attachments: payload.attachments,
+        parentMessageId,
+      }),
     });
     if (!res.ok) {
       const data = (await res.json()) as { error?: string };
@@ -288,7 +296,10 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
               <div ref={bottomRef} />
             </div>
 
-            <MessageInput onSend={(content) => sendMessage(content)} />
+            <MessageInput
+              channelId={channelId}
+              onSend={(payload) => sendMessage(payload)}
+            />
           </div>
 
           {threadParentId && parentMessage && (
@@ -297,11 +308,12 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
             onClose={() => setThreadParentId(null)}
             footer={
               <MessageInput
+                channelId={channelId}
                 isThread
                 channelName={channel?.name}
                 placeholder="Reply…"
-                onSend={(content) => sendMessage(content, threadParentId)}
-                onAlsoSendToChannel={(content) => sendMessage(content)}
+                onSend={(payload) => sendMessage(payload, threadParentId)}
+                onAlsoSendToChannel={(payload) => sendMessage(payload)}
               />
             }
           >
