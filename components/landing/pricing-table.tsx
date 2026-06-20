@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Minus } from "lucide-react";
-import { Reveal } from "@/components/landing/motion";
+import { Reveal, RevealText } from "@/components/landing/motion";
 import { PricingVideoBackground } from "@/components/landing/pricing-video-background";
 import { Button } from "@/components/ui/button";
 import { PRO_PRICE_MONTHLY } from "@/lib/types/database";
@@ -66,7 +66,11 @@ export function PricingTable() {
             Pricing
           </p>
           <h2 className="mt-3 text-xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl">
-            Choose the plan that&apos;s right for your team
+            <RevealText
+              as="span"
+              text="Choose the plan that's right for your team"
+              wordDelay={65}
+            />
           </h2>
           <p className="mt-4 text-muted-foreground">
             Start free. Upgrade when you need unlimited history and channels.
@@ -74,7 +78,7 @@ export function PricingTable() {
         </Reveal>
 
         <div className="mx-auto mt-10 grid max-w-6xl gap-4 sm:mt-16 sm:gap-6 lg:grid-cols-3">
-          <Reveal delay={0} y={24}>
+          <Reveal delay={0} y={32}>
             <div className="glass-card flex h-full flex-col p-6 sm:p-8">
             <p className="text-lg font-semibold text-white">Free</p>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -95,7 +99,7 @@ export function PricingTable() {
             </div>
           </Reveal>
 
-          <Reveal delay={100} y={24}>
+          <Reveal delay={120} y={32}>
             <div className="glass-card relative flex h-full flex-col border-primary/30 p-6 ring-1 ring-primary/25 sm:p-8">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-black">
               Recommended
@@ -120,7 +124,7 @@ export function PricingTable() {
             </div>
           </Reveal>
 
-          <Reveal delay={200} y={24}>
+          <Reveal delay={240} y={32}>
             <div className="glass-card flex h-full flex-col p-6 sm:p-8">
             <p className="text-lg font-semibold text-white">Business+</p>
             <p className="mt-1 text-sm text-muted-foreground">

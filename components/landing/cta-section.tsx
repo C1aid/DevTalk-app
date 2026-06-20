@@ -31,39 +31,37 @@ export function CtaSection() {
                 Less noise.{" "}
                 <span className="text-gradient">More shipping.</span>
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+              <p className="mx-auto mt-4 max-w-xl text-balance text-base leading-relaxed text-muted-foreground">
                 Channels, threads, and code blocks in one workspace — built for
                 teams that want clarity, not clutter.
               </p>
 
-              <ul className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                {perks.map((perk, index) => (
-                  <Reveal key={perk} as="li" delay={120 + index * 60} y={10}>
+              <ul className="mt-6 flex list-none flex-wrap items-center justify-center gap-2 sm:gap-3">
+                {perks.map((perk) => (
+                  <li key={perk}>
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-muted-foreground sm:text-sm">
                       <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
                       {perk}
                     </span>
-                  </Reveal>
+                  </li>
                 ))}
               </ul>
 
-              <Reveal delay={320} y={16} className="mt-8">
-                <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-                  <Link
-                    href="/signup"
-                    className="btn-brand inline-flex h-12 items-center justify-center px-8 text-base"
-                  >
-                    Create free workspace
-                    <ArrowRight className="ml-1.5 size-4" aria-hidden />
-                  </Link>
-                  <Link
-                    href="/login"
-                    className="btn-brand-outline inline-flex h-12 items-center justify-center px-8 text-base"
-                  >
-                    Sign in
-                  </Link>
-                </div>
-              </Reveal>
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+                <Link
+                  href="/signup"
+                  className="btn-brand inline-flex h-12 items-center justify-center px-8 text-base"
+                >
+                  Create free workspace
+                  <ArrowRight className="ml-1.5 size-4" aria-hidden />
+                </Link>
+                <Link
+                  href="/login"
+                  className="btn-brand-outline inline-flex h-12 items-center justify-center px-8 text-base"
+                >
+                  Sign in
+                </Link>
+              </div>
             </div>
           </div>
         </Reveal>

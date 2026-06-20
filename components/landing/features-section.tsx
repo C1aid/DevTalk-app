@@ -6,7 +6,7 @@ import {
   MessageSquare,
   Zap,
 } from "lucide-react";
-import { Reveal } from "@/components/landing/motion";
+import { Reveal, RevealText } from "@/components/landing/motion";
 
 const features: {
   icon: LucideIcon;
@@ -60,7 +60,11 @@ export function FeaturesSection() {
             Features
           </p>
           <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
-            Chat built for developers
+            <RevealText
+              as="span"
+              text="Chat built for developers"
+              wordDelay={80}
+            />
           </h2>
           <p className="mt-4 text-muted-foreground">
             Channels, threads, code blocks, and GitHub previews — without the
@@ -70,7 +74,7 @@ export function FeaturesSection() {
 
         <div className="mt-10 grid gap-4 sm:mt-16 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {features.map(({ icon: Icon, title, description }, index) => (
-            <Reveal key={title} delay={index * 70} y={20}>
+            <Reveal key={title} delay={index * 90} y={24}>
               <div className="glass-card group h-full p-5 sm:p-6">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
                   <Icon className="h-5 w-5 text-primary" />

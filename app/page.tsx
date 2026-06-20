@@ -3,7 +3,7 @@ import { FaqAccordion } from "@/components/landing/faq-accordion";
 import { FeaturesSection } from "@/components/landing/features-section";
 import { HeroSection } from "@/components/landing/hero-section";
 import { LandingStats } from "@/components/landing/landing-stats";
-import { Reveal } from "@/components/landing/motion";
+import { Reveal, RevealText } from "@/components/landing/motion";
 import { PricingTable } from "@/components/landing/pricing-table";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeader } from "@/components/marketing/site-header";
@@ -61,7 +61,11 @@ export default function LandingPage() {
           <div className="container mx-auto px-4">
             <Reveal className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
-                Frequently asked questions
+                <RevealText
+                  as="span"
+                  text="Frequently asked questions"
+                  wordDelay={75}
+                />
               </h2>
             </Reveal>
             <FaqAccordion items={faqs} />

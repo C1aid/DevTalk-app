@@ -1,14 +1,50 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { AnimatedHeading, FadeIn } from "@/components/landing/motion";
 import { HeroVideoBackground } from "@/components/landing/hero-video-background";
 
 export function HeroSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [replayKey, setReplayKey] = useState(0);
+  const wasInView = useRef(true);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const inView = entry?.isIntersecting ?? false;
+        if (inView && !wasInView.current) {
+          setReplayKey((key) => key + 1);
+        }
+        wasInView.current = inView;
+      },
+      { threshold: 0.3 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="relative min-h-svh overflow-x-hidden bg-black text-white">
+    <section
+      ref={sectionRef}
+      className="relative min-h-svh overflow-x-hidden bg-black text-white"
+    >
       <HeroVideoBackground />
 
       <div className="relative z-10 flex min-h-svh flex-col font-[Helvetica_Neue,Helvetica,Arial,sans-serif] font-normal antialiased">
-        <div className="flex flex-1 flex-col items-center justify-center px-5 py-20 sm:px-6 md:px-12 lg:px-16">
+        <div
+          key={replayKey}
+          className="relative flex min-h-svh flex-1 flex-col items-center justify-center px-5 py-20 sm:px-6 md:px-12 lg:px-16"
+        >
           <div className="flex w-full max-w-4xl flex-col items-center text-center">
             <AnimatedHeading
               text={"Chat that flows\nwith your team."}
@@ -40,16 +76,16 @@ export function HeroSection() {
               </div>
             </FadeIn>
           </div>
-        </div>
 
-        <div className="absolute bottom-0 left-0 right-0 hidden justify-center px-6 pb-12 sm:flex md:px-12 lg:px-16 lg:pb-16">
-          <FadeIn delay={1300}>
-            <div className="liquid-glass rounded-xl border border-white/20 px-6 py-3">
-              <p className="text-lg font-light md:text-xl lg:text-2xl">
-                Ship faster. Talk clearer.
-              </p>
-            </div>
-          </FadeIn>
+          <div className="absolute bottom-0 left-0 right-0 hidden justify-center px-6 pb-12 sm:flex md:px-12 lg:px-16 lg:pb-16">
+            <FadeIn delay={1300}>
+              <div className="liquid-glass rounded-xl border border-white/20 px-6 py-3">
+                <p className="text-lg font-light md:text-xl lg:text-2xl">
+                  Ship faster. Talk clearer.
+                </p>
+              </div>
+            </FadeIn>
+          </div>
         </div>
       </div>
     </section>

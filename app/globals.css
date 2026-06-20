@@ -194,6 +194,18 @@
     background-image: linear-gradient(135deg, #ffffff 0%, #a3a3a3 100%);
   }
 
+  .marketing-prose {
+    @apply text-muted-foreground;
+  }
+
+  .marketing-prose :where(h2, h3, strong) {
+    @apply text-foreground;
+  }
+
+  .marketing-prose :where(p, li) {
+    @apply leading-relaxed;
+  }
+
   .btn-brand {
     @apply inline-flex items-center justify-center rounded-md font-medium transition-smooth duration-300;
     background: #ffffff;
@@ -245,13 +257,15 @@
   .hero-char {
     display: inline-block;
     opacity: 0;
-    animation: hero-char-in 0.6s var(--ease-smooth) forwards;
+    filter: blur(12px);
+    animation: hero-char-in 0.75s var(--ease-smooth) forwards;
     animation-delay: calc(var(--hero-delay, 200ms) + var(--char-index) * var(--char-step, 28ms));
   }
 
   .motion-fade {
     opacity: 0;
-    animation: motion-fade-in 0.85s var(--ease-smooth) forwards;
+    filter: blur(8px);
+    animation: motion-fade-in 1s var(--ease-smooth) forwards;
     animation-delay: var(--motion-delay, 0ms);
   }
 
@@ -297,37 +311,70 @@
   @keyframes hero-char-in {
     from {
       opacity: 0;
-      transform: translate3d(-14px, 0, 0);
+      filter: blur(12px);
+      transform: translate3d(-10px, 10px, 0) scale(1.08);
     }
     to {
       opacity: 1;
-      transform: translate3d(0, 0, 0);
+      filter: blur(0);
+      transform: translate3d(0, 0, 0) scale(1);
     }
   }
 
   @keyframes motion-fade-in {
     from {
       opacity: 0;
-      transform: translate3d(0, 10px, 0);
+      filter: blur(8px);
+      transform: translate3d(0, 18px, 0) scale(0.98);
     }
     to {
       opacity: 1;
-      transform: translate3d(0, 0, 0);
+      filter: blur(0);
+      transform: translate3d(0, 0, 0) scale(1);
     }
   }
 
   .motion-reveal {
     opacity: 0;
-    transform: translate3d(0, var(--reveal-y, 28px), 0);
-    transition:
-      opacity 0.9s var(--ease-smooth),
-      transform 0.9s var(--ease-smooth);
-    transition-delay: var(--reveal-delay, 0ms);
+    filter: blur(var(--reveal-blur, 10px));
+    transform: translate3d(0, var(--reveal-y, 36px), 0) scale(0.97);
   }
 
   .motion-reveal-visible {
     opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+    transition:
+      opacity 1s var(--ease-smooth),
+      transform 1s var(--ease-smooth),
+      filter 1s var(--ease-smooth);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .motion-reveal:not(.motion-reveal-visible) {
+    transition: none;
+  }
+
+  .motion-word {
+    display: inline-block;
+    opacity: 0;
+    filter: blur(10px);
+    transform: translate3d(0, 14px, 0);
+  }
+
+  .motion-word-visible {
+    opacity: 1;
+    filter: blur(0);
     transform: translate3d(0, 0, 0);
+    transition:
+      opacity 0.8s var(--ease-smooth),
+      transform 0.8s var(--ease-smooth),
+      filter 0.8s var(--ease-smooth);
+    transition-delay: var(--word-delay, 0ms);
+  }
+
+  .motion-word:not(.motion-word-visible) {
+    transition: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -338,10 +385,12 @@
     .hero-char,
     .motion-fade,
     .motion-reveal,
+    .motion-word,
     .auth-code-panel {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
+      filter: none !important;
       transition: none !important;
     }
 

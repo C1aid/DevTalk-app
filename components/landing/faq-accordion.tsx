@@ -31,7 +31,7 @@ export function FaqAccordion({ items }: { items: FaqItem[] }) {
         const isOpen = openItems.has(index);
 
         return (
-          <Reveal key={item.question} as="div" delay={index * 70} y={16}>
+          <Reveal key={item.question} as="div" delay={index * 85} y={20}>
             <div className="py-5">
             <button
               type="button"
