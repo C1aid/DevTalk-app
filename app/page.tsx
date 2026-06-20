@@ -2,7 +2,8 @@ import { CtaSection } from "@/components/landing/cta-section";
 import { FaqAccordion } from "@/components/landing/faq-accordion";
 import { FeaturesSection } from "@/components/landing/features-section";
 import { HeroSection } from "@/components/landing/hero-section";
-import { LandingStats } from "@/components/landing/landing-stats";
+import { LandingPrinciples } from "@/components/landing/landing-principles";
+import { LandingProductStory } from "@/components/landing/landing-product-story";
 import { Reveal, RevealText } from "@/components/landing/motion";
 import { PricingTable } from "@/components/landing/pricing-table";
 import { SiteFooter } from "@/components/marketing/site-footer";
@@ -12,37 +13,27 @@ const faqs = [
   {
     question: "Do I need a credit card to get started?",
     answer:
-      "No. Create an account, set up your workspace, and start messaging your team for free. A credit card is only required if you decide to upgrade to Pro.",
+      "No. Sign up, create your workspace, and start messaging immediately. A card is only required if you choose to upgrade to Pro.",
   },
   {
-    question: "What are the limits on the Free plan?",
+    question: "Can I use private channels on the Free plan?",
     answer:
-      "Free includes 90 days of message history, up to 10 channels, threads, reactions, Markdown, code blocks, and GitHub link previews. Search is available within your 90-day message window.",
-  },
-  {
-    question: "What do I get with Pro?",
-    answer:
-      "Pro removes the Free plan limits: unlimited message history, unlimited channels, and full-text search across your entire archive. Pro also includes priority support.",
-  },
-  {
-    question: "How much does Pro cost?",
-    answer:
-      "Pro is $8 USD per month, billed monthly per account through Stripe. You can upgrade at any time from Settings in your dashboard.",
-  },
-  {
-    question: "Can I create private channels?",
-    answer:
-      "Yes. Channels can be public to everyone in your workspace or private for invite-only access — useful for sensitive discussions or smaller group coordination.",
+      "Yes. Public and private channels, DMs, threads, and reactions are available on every plan. Free limits apply to channel count (10) and message history (90 days), not to feature access.",
   },
   {
     question: "What happens to messages older than 90 days on Free?",
     answer:
-      "On the Free plan, messages older than 90 days are no longer visible in your workspace or search results. Your data is retained — upgrading to Pro restores access to your full message history.",
+      "They are hidden from channels, search, and threads — but not deleted. Upgrading to Pro restores instant access to your full archive.",
+  },
+  {
+    question: "Is DevTalk suitable for open-source teams?",
+    answer:
+      "Yes. Public channels work well for maintainer coordination. GitHub link previews, code blocks, and threads map directly to how OSS teams already communicate.",
   },
   {
     question: "Does DevTalk include AI features?",
     answer:
-      "No. DevTalk is focused on clear, reliable team chat for developers. There are no AI summaries, assistant bots, or paid AI add-ons.",
+      "No — by design. There are no AI summaries, assistant bots, or paid AI add-ons. DevTalk is focused on clear, reliable team chat.",
   },
 ];
 
@@ -53,20 +44,35 @@ export default function LandingPage() {
 
       <main>
         <HeroSection />
-        <LandingStats />
+        <LandingProductStory />
         <FeaturesSection />
+        <LandingPrinciples />
         <PricingTable />
 
         <section id="faq" className="scroll-mt-24 border-t border-border py-16 md:py-24">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 sm:px-6">
             <Reveal className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
+              <p className="text-sm font-medium uppercase tracking-widest text-primary">
+                FAQ
+              </p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
                 <RevealText
                   as="span"
-                  text="Frequently asked questions"
+                  text="Questions before you sign up"
                   wordDelay={75}
                 />
               </h2>
+              <p className="mt-4 text-muted-foreground">
+                Plan details live in{" "}
+                <a href="#pricing" className="text-white hover:underline">
+                  pricing
+                </a>
+                . Feature depth is in{" "}
+                <a href="#features" className="text-white hover:underline">
+                  capabilities
+                </a>
+                .
+              </p>
             </Reveal>
             <FaqAccordion items={faqs} />
           </div>

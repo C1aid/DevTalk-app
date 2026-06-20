@@ -72,8 +72,9 @@ export function PricingTable() {
               wordDelay={65}
             />
           </h2>
-          <p className="mt-4 text-muted-foreground">
-            Start free. Upgrade when you need unlimited history and channels.
+          <p className="mt-4 max-w-xl text-muted-foreground">
+            Compare plans side by side. Every feature row is the single source
+            of truth for what&apos;s included.
           </p>
         </Reveal>
 

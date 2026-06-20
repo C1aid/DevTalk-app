@@ -3,90 +3,169 @@ import {
   Code2,
   GitBranch,
   Hash,
+  Layers,
   MessageSquare,
+  Paperclip,
   Zap,
 } from "lucide-react";
-import { Reveal, RevealText } from "@/components/landing/motion";
+import { Reveal } from "@/components/landing/motion";
+import { LandingGlassPanel } from "@/components/landing/landing-glass-panel";
+import { cn } from "@/lib/utils";
 
-const features: {
+type Capability = {
   icon: LucideIcon;
   title: string;
   description: string;
-}[] = [
+};
+
+const organize: Capability[] = [
+  {
+    icon: Layers,
+    title: "Workspaces & sections",
+    description:
+      "Separate teams or products. Group channels into folders as you grow.",
+  },
   {
     icon: Hash,
-    title: "Channels",
+    title: "Public & private channels",
     description:
-      "Organize conversations by project, team, or topic — public or private.",
+      "Open rooms for everyone or invite-only spaces for sensitive work.",
   },
+];
+
+const communicate: Capability[] = [
   {
     icon: MessageSquare,
     title: "Threads & reactions",
     description:
-      "Keep discussions focused with threads and express yourself with emoji reactions.",
+      "Branch discussions without noise. React instead of sending '+1'.",
   },
+  {
+    icon: Zap,
+    title: "Realtime delivery",
+    description:
+      "Messages and reactions sync instantly — no refresh button.",
+  },
+];
+
+const ship: Capability[] = [
   {
     icon: Code2,
     title: "Markdown & code",
-    description:
-      "Write in Markdown with syntax-highlighted code blocks — built for developers.",
+    description: "Syntax-highlighted fences and inline code.",
   },
   {
     icon: GitBranch,
     title: "GitHub previews",
-    description:
-      "Paste a PR, issue, or commit link and get a rich preview inline.",
+    description: "PRs, issues, and commits unfurl inline.",
   },
   {
-    icon: Zap,
-    title: "Real-time",
-    description:
-      "Messages appear instantly with Supabase Realtime — no refresh needed.",
-  },
-  {
-    icon: MessageSquare,
-    title: "Simple pricing",
-    description:
-      "Free to start. Pro unlocks unlimited history and channels — no AI upsells.",
+    icon: Paperclip,
+    title: "File attachments",
+    description: "Images, logs, docs — up to 50 MB.",
   },
 ];
+
+function CapabilityRow({
+  icon: Icon,
+  title,
+  description,
+}: Capability) {
+  return (
+    <div className="group flex gap-3.5 rounded-xl px-3 py-3.5 transition-colors hover:bg-white/[0.04] sm:gap-4">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.05] ring-1 ring-white/10 transition-smooth group-hover:bg-white/[0.08]">
+        <Icon className="size-3.5 text-white/70" aria-hidden />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-white">{title}</p>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CapabilityGroup({
+  label,
+  items,
+  className,
+}: {
+  label: string;
+  items: Capability[];
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5",
+        className,
+      )}
+    >
+      <p className="mb-3 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
+        <span className="h-px w-4 bg-white/25" />
+        {label}
+      </p>
+      <div className="space-y-1">
+        {items.map((item) => (
+          <CapabilityRow key={item.title} {...item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ShipTile({ icon: Icon, title, description }: Capability) {
+  return (
+    <div className="group rounded-xl border border-white/[0.06] bg-black/20 p-4 transition-colors hover:border-white/12 hover:bg-white/[0.03] sm:p-5">
+      <Icon className="size-4 text-white/50 transition-colors group-hover:text-white/80" />
+      <p className="mt-4 text-sm font-medium text-white">{title}</p>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+    </div>
+  );
+}
 
 export function FeaturesSection() {
   return (
     <section id="features" className="scroll-mt-24 py-16 md:py-24 lg:py-32">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
-            Features
+            Capabilities
           </p>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
-            <RevealText
-              as="span"
-              text="Chat built for developers"
-              wordDelay={80}
-            />
+          <h2
+            className="mt-3 text-2xl font-normal tracking-tight text-white sm:text-3xl md:text-4xl"
+            style={{ letterSpacing: "-0.03em" }}
+          >
+            Everything a dev team needs to coordinate.
+            <span className="block text-muted-foreground">
+              Nothing they don&apos;t.
+            </span>
           </h2>
-          <p className="mt-4 text-muted-foreground">
-            Channels, threads, code blocks, and GitHub previews — without the
-            noise.
-          </p>
         </Reveal>
 
-        <div className="mt-10 grid gap-4 sm:mt-16 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-          {features.map(({ icon: Icon, title, description }, index) => (
-            <Reveal key={title} delay={index * 90} y={24}>
-              <div className="glass-card group h-full p-5 sm:p-6">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {description}
-                </p>
+        <LandingGlassPanel className="mt-12 sm:mt-16" delay={80}>
+          <div className="space-y-4 p-5 sm:p-7 md:p-8">
+            <div className="grid gap-4 md:grid-cols-2">
+              <CapabilityGroup label="Organize" items={organize} />
+              <CapabilityGroup label="Communicate" items={communicate} />
+            </div>
+
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
+              <p className="mb-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
+                <span className="h-px w-4 bg-white/25" />
+                Ship
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {ship.map((item) => (
+                  <ShipTile key={item.title} {...item} />
+                ))}
               </div>
-            </Reveal>
-          ))}
-        </div>
+            </div>
+          </div>
+        </LandingGlassPanel>
       </div>
     </section>
   );

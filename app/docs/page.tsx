@@ -7,6 +7,29 @@ export const metadata = {
   description: "Product documentation for DevTalk team chat.",
 };
 
+const quickStart = [
+  {
+    title: "Getting started",
+    href: "/docs/getting-started",
+    description: "Create an account, set up a workspace, and send your first message.",
+  },
+  {
+    title: "Workspaces",
+    href: "/docs/workspaces",
+    description: "Create, switch, and manage workspaces and membership.",
+  },
+  {
+    title: "Channels & DMs",
+    href: "/docs/channels-and-dms",
+    description: "Channels, threads, reactions, formatting, and GitHub previews.",
+  },
+  {
+    title: "Billing & plans",
+    href: "/docs/billing",
+    description: "Free vs Pro, limits, upgrades, and subscription management.",
+  },
+];
+
 export default function DocsIndexPage() {
   return (
     <DocsLayout
@@ -15,13 +38,24 @@ export default function DocsIndexPage() {
       lastUpdated="June 12, 2026"
     >
       <p>
-        Everything you need to onboard your team, organize workspaces, and get
-        the most out of DevTalk.
+        DevTalk is a team chat workspace for developers. This documentation
+        covers everything from your first login to API integration, billing,
+        and data processing. All guides are written for end users and workspace
+        administrators — no developer setup required unless noted.
       </p>
 
-      <h2>Popular guides</h2>
+      <h2>Quick start</h2>
       <ul>
-        {DOC_PAGES.slice(0, 4).map((page) => (
+        {quickStart.map(({ title, href, description }) => (
+          <li key={href}>
+            <Link href={href}>{title}</Link> — {description}
+          </li>
+        ))}
+      </ul>
+
+      <h2>All guides</h2>
+      <ul>
+        {DOC_PAGES.map((page) => (
           <li key={page.slug}>
             <Link href={`/docs/${page.slug}`}>{page.title}</Link> —{" "}
             {page.description}
@@ -29,14 +63,12 @@ export default function DocsIndexPage() {
         ))}
       </ul>
 
-      <h2>All articles</h2>
-      <ul>
-        {DOC_PAGES.map((page) => (
-          <li key={page.slug}>
-            <Link href={`/docs/${page.slug}`}>{page.title}</Link>
-          </li>
-        ))}
-      </ul>
+      <h2>Need help?</h2>
+      <p>
+        Check the <Link href="/#faq">FAQ</Link> on the landing page, visit{" "}
+        <Link href="/contact">Contact & support</Link>, or email{" "}
+        <a href="mailto:support@devtalk.app">support@devtalk.app</a>.
+      </p>
     </DocsLayout>
   );
 }
