@@ -26,20 +26,20 @@ export function FaqAccordion({ items }: { items: FaqItem[] }) {
   };
 
   return (
-    <div className="mx-auto mt-12 max-w-2xl divide-y divide-white/8">
+    <div className="mx-auto mt-8 max-w-2xl divide-y divide-white/8 sm:mt-12">
       {items.map((item, index) => {
         const isOpen = openItems.has(index);
 
         return (
           <Reveal key={item.question} as="div" delay={index * 85} y={20}>
-            <div className="py-5">
+            <div className="py-4 sm:py-5">
             <button
               type="button"
-              className="flex w-full items-center justify-between gap-4 rounded-lg text-left text-sm font-medium transition-smooth hover:text-primary sm:text-base"
+              className="flex w-full items-start justify-between gap-3 rounded-lg text-left text-[15px] font-medium leading-snug transition-smooth hover:text-primary sm:items-center sm:gap-4 sm:text-base"
               onClick={() => toggle(index)}
               aria-expanded={isOpen}
             >
-              {item.question}
+              <span className="min-w-0 flex-1">{item.question}</span>
               <ChevronDown
                 className={cn(
                   "faq-chevron h-4 w-4 shrink-0 text-muted-foreground",

@@ -1,6 +1,9 @@
 export type SubscriptionTier = "free" | "pro" | "premium";
 export type ChannelVisibility = "public" | "private";
 export type ChannelKind = "channel" | "dm";
+export type WorkspaceMemberRole = "owner" | "admin" | "member";
+export type ChannelPostingPermission = "all_members" | "admins_only";
+export type PresenceStatus = "online" | "idle" | "dnd" | "offline";
 
 export interface Database {
   public: {
@@ -13,6 +16,8 @@ export interface Database {
           avatar_url: string | null;
           subscription_tier: SubscriptionTier;
           stripe_customer_id: string | null;
+          presence_status?: PresenceStatus;
+          last_active_at?: string;
           created_at: string;
           updated_at: string;
         };
@@ -23,6 +28,8 @@ export interface Database {
           avatar_url?: string | null;
           subscription_tier?: SubscriptionTier;
           stripe_customer_id?: string | null;
+          presence_status?: PresenceStatus;
+          last_active_at?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -33,6 +40,8 @@ export interface Database {
           avatar_url?: string | null;
           subscription_tier?: SubscriptionTier;
           stripe_customer_id?: string | null;
+          presence_status?: PresenceStatus;
+          last_active_at?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -73,21 +82,21 @@ export interface Database {
           id: string;
           workspace_id: string;
           user_id: string;
-          role: string;
+          role: WorkspaceMemberRole;
           created_at: string;
         };
         Insert: {
           id?: string;
           workspace_id: string;
           user_id: string;
-          role?: string;
+          role?: WorkspaceMemberRole;
           created_at?: string;
         };
         Update: {
           id?: string;
           workspace_id?: string;
           user_id?: string;
-          role?: string;
+          role?: WorkspaceMemberRole;
           created_at?: string;
         };
         Relationships: [];
@@ -102,6 +111,7 @@ export interface Database {
           section_id: string | null;
           workspace_id: string | null;
           dm_key: string | null;
+          posting_permission?: ChannelPostingPermission;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -115,6 +125,7 @@ export interface Database {
           section_id?: string | null;
           workspace_id?: string | null;
           dm_key?: string | null;
+          posting_permission?: ChannelPostingPermission;
           created_by: string;
           created_at?: string;
           updated_at?: string;
@@ -128,6 +139,7 @@ export interface Database {
           section_id?: string | null;
           workspace_id?: string | null;
           dm_key?: string | null;
+          posting_permission?: ChannelPostingPermission;
           created_by?: string;
           created_at?: string;
           updated_at?: string;
@@ -190,6 +202,7 @@ export interface Database {
           content: string;
           parent_message_id: string | null;
           attachments: unknown;
+          deleted_at?: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -200,6 +213,7 @@ export interface Database {
           content: string;
           parent_message_id?: string | null;
           attachments?: unknown;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -210,6 +224,7 @@ export interface Database {
           content?: string;
           parent_message_id?: string | null;
           attachments?: unknown;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

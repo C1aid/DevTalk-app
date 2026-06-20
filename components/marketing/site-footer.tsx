@@ -47,8 +47,8 @@ const footerSections = [
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-black">
-      <div className="container mx-auto px-4 py-14 sm:py-16">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
+      <div className="container mx-auto px-4 py-12 sm:px-6 sm:py-16">
+        <div className="grid gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-4">
             <Link href="/" className="inline-flex items-center gap-3 font-semibold">
               <BrandLogo size="md" />

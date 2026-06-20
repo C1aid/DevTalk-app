@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, FileIcon } from "lucide-react";
+import { Download, FileIcon, Mic } from "lucide-react";
 import {
   formatFileSize,
+  isAudioMimeType,
   isImageMimeType,
   type MessageAttachment,
 } from "@/lib/chat/attachments";
@@ -72,6 +73,28 @@ export function MessageAttachments({
                 className="max-h-72 w-full object-contain"
               />
             </a>
+          );
+        }
+
+        if (attachment.url && isAudioMimeType(attachment.mimeType)) {
+          return (
+            <div
+              key={attachment.id}
+              className="glass-card flex items-center gap-3 px-3 py-2.5"
+            >
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/5">
+                <Mic className="size-4 text-sky-300" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-white">Voice message</p>
+                <audio
+                  controls
+                  preload="metadata"
+                  src={attachment.url}
+                  className="mt-1 h-8 w-full max-w-sm"
+                />
+              </div>
+            </div>
           );
         }
 

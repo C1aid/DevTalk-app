@@ -12,6 +12,8 @@ type MessageListProps = {
   onOpenThread?: (messageId: string) => void;
   onToggleReaction?: (messageId: string, emoji: string) => void;
   onAuthorClick?: (author: UserProfileSummary) => void;
+  onEdit?: (messageId: string, content: string) => Promise<void>;
+  onDelete?: (messageId: string) => Promise<void>;
   compact?: boolean;
 };
 
@@ -21,6 +23,8 @@ export function MessageList({
   onOpenThread,
   onToggleReaction,
   onAuthorClick,
+  onEdit,
+  onDelete,
   compact = false,
 }: MessageListProps) {
   return (
@@ -41,6 +45,8 @@ export function MessageList({
               onOpenThread={onOpenThread}
               onToggleReaction={onToggleReaction}
               onAuthorClick={onAuthorClick}
+              onEdit={onEdit}
+              onDelete={onDelete}
               compact={compact}
             />
           </div>

@@ -43,7 +43,7 @@ function FeatureCell({ value, highlight }: { value: boolean | string; highlight?
   return (
     <span
       className={cn(
-        "text-xs sm:text-sm",
+        "block text-[11px] leading-snug sm:text-xs md:text-sm",
         highlight ? "font-medium text-white" : "text-muted-foreground",
       )}
     >
@@ -56,29 +56,29 @@ export function PricingTable() {
   return (
     <section
       id="pricing"
-      className="relative scroll-mt-24 overflow-hidden border-y border-white/8 py-16 md:py-24 lg:py-32"
+      className="relative scroll-mt-24 overflow-hidden border-y border-white/8 py-12 sm:py-16 md:py-24 lg:py-32"
     >
       <PricingVideoBackground />
 
-      <div className="container relative z-10 mx-auto px-4">
+      <div className="container relative z-10 mx-auto px-4 sm:px-6">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
             Pricing
           </p>
-          <h2 className="mt-3 text-xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl">
+          <h2 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl">
             <RevealText
               as="span"
               text="Choose the plan that's right for your team"
               wordDelay={65}
             />
           </h2>
-          <p className="mt-4 max-w-xl text-muted-foreground">
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
             Compare plans side by side. Every feature row is the single source
             of truth for what&apos;s included.
           </p>
         </Reveal>
 
-        <div className="mx-auto mt-10 grid max-w-6xl gap-4 sm:mt-16 sm:gap-6 lg:grid-cols-3">
+        <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:mt-12 sm:gap-6 lg:grid-cols-3">
           <Reveal delay={0} y={32}>
             <div className="glass-card flex h-full flex-col p-6 sm:p-8">
             <p className="text-lg font-semibold text-white">Free</p>
@@ -149,29 +149,30 @@ export function PricingTable() {
         </div>
 
         <Reveal delay={120} y={20}>
-          <div className="mx-auto mt-10 max-w-6xl space-y-3 md:hidden">
+          <div className="mx-auto mt-8 max-w-6xl space-y-2.5 md:hidden">
           {features.map((row) => (
             <div
               key={row.label}
-              className="rounded-xl border border-white/10 bg-white/[0.03] p-4"
+              className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 sm:p-4"
             >
-              <p className="mb-3 text-sm font-medium text-white">{row.label}</p>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
+              <p className="mb-2.5 text-sm font-medium text-white">{row.label}</p>
+              <div className="grid grid-cols-3 gap-1.5 text-center sm:gap-2">
+                <div className="min-w-0 px-0.5">
                   <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Free
                   </p>
                   <FeatureCell value={row.free} />
                 </div>
-                <div className="rounded-lg bg-white/[0.04] py-1">
+                <div className="min-w-0 rounded-lg bg-white/[0.04] px-0.5 py-1">
                   <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                     Pro
                   </p>
                   <FeatureCell value={row.pro} highlight />
                 </div>
-                <div>
+                <div className="min-w-0 px-0.5">
                   <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Business+
+                    <span className="sm:hidden">Biz+</span>
+                    <span className="hidden sm:inline">Business+</span>
                   </p>
                   <FeatureCell value={row.business} />
                 </div>

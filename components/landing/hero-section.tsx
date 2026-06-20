@@ -60,16 +60,16 @@ export function HeroSection() {
             </FadeIn>
 
             <FadeIn delay={1050}>
-              <div className="mt-6 grid w-full max-w-sm grid-cols-2 gap-2.5 sm:mt-0 sm:flex sm:max-w-none sm:flex-wrap sm:justify-center sm:gap-4">
+              <div className="mt-6 flex w-full max-w-xs flex-col gap-2.5 sm:mt-0 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
                 <Link
                   href="/signup"
-                  className="rounded-md bg-white px-4 py-2.5 text-center text-sm font-medium text-black transition-smooth hover:bg-gray-100 sm:px-8 sm:py-3 sm:text-base"
+                  className="w-full rounded-md bg-white px-4 py-3 text-center text-sm font-medium text-black transition-smooth hover:bg-gray-100 sm:w-auto sm:px-8 sm:py-3 sm:text-base"
                 >
                   Get started free
                 </Link>
                 <a
                   href="#pricing"
-                  className="liquid-glass rounded-md border border-white/20 px-4 py-2.5 text-center text-sm font-medium text-white transition-smooth hover:bg-white hover:text-black sm:px-8 sm:py-3 sm:text-base"
+                  className="liquid-glass w-full rounded-md border border-white/20 px-4 py-3 text-center text-sm font-medium text-white transition-smooth hover:bg-white hover:text-black sm:w-auto sm:px-8 sm:py-3 sm:text-base"
                 >
                   View pricing
                 </a>

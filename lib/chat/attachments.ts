@@ -14,6 +14,10 @@ export function sanitizeFileName(name: string): string {
   return base.slice(0, 180) || "file";
 }
 
+export function isAudioMimeType(mimeType: string): boolean {
+  return mimeType.startsWith("audio/");
+}
+
 export function isImageMimeType(mimeType: string): boolean {
   return mimeType.startsWith("image/");
 }

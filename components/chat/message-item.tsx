@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Smile } from "lucide-react";
+import { MessageSquare, MoreHorizontal, Pencil, Smile, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { MessageContent } from "@/components/chat/message-content";
 import { MessageAttachments } from "@/components/chat/message-attachments";
@@ -21,6 +21,8 @@ type MessageItemProps = {
   onOpenThread?: (messageId: string) => void;
   onToggleReaction?: (messageId: string, emoji: string) => void;
   onAuthorClick?: (author: UserProfileSummary) => void;
+  onEdit?: (messageId: string, content: string) => Promise<void>;
+  onDelete?: (messageId: string) => Promise<void>;
   compact?: boolean;
 };
 
@@ -30,9 +32,16 @@ export function MessageItem({
   onOpenThread,
   onToggleReaction,
   onAuthorClick,
+  onEdit,
+  onDelete,
   compact = false,
 }: MessageItemProps) {
   const [showPicker, setShowPicker] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(message.content);
+  const [isSaving, setIsSaving] = useState(false);
+
   const author = message.author ?? {
     id: "",
     email: "unknown@devtalk.app",
@@ -41,6 +50,11 @@ export function MessageItem({
   };
   const displayName = getDisplayName(author);
   const edited = isMessageEdited(message.created_at, message.updated_at);
+  const isOwn = message.user_id === currentUserId;
+  const isDeleted = Boolean(message.deleted_at);
+  const hasAttachments = (message.attachments ?? []).length > 0;
+  const canEdit = isOwn && !isDeleted && !hasAttachments && onEdit;
+  const canDelete = isOwn && !isDeleted && onDelete;
 
   const grouped = (message.reactions ?? []).reduce<
     Record<string, { count: number; reacted: boolean }>
@@ -51,6 +65,17 @@ export function MessageItem({
     acc[r.emoji] = entry;
     return acc;
   }, {});
+
+  const saveEdit = async () => {
+    if (!onEdit || !editValue.trim()) return;
+    setIsSaving(true);
+    try {
+      await onEdit(message.id, editValue.trim());
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div
@@ -68,7 +93,11 @@ export function MessageItem({
         )}
         disabled={!onAuthorClick}
       >
-        <UserAvatar profile={author} className="size-9 rounded-lg" />
+        <UserAvatar
+          profile={author}
+          showPresence
+          className="size-9 rounded-lg"
+        />
       </button>
 
       <div className="min-w-0 flex-1 pr-8 sm:pr-10">
@@ -87,15 +116,55 @@ export function MessageItem({
           <span className="text-xs text-gray-500">
             {formatMessageTime(message.created_at)}
           </span>
-          {edited && <span className="text-xs text-gray-500">(edited)</span>}
+          {edited && !isDeleted && (
+            <span className="text-xs text-gray-500">(edited)</span>
+          )}
         </div>
 
         <div className="mt-0.5 text-[15px] leading-relaxed text-gray-100">
-          {message.content.trim() ? <MessageContent content={message.content} /> : null}
-          <MessageAttachments attachments={message.attachments ?? []} />
+          {isDeleted ? (
+            <p className="italic text-gray-500">This message was deleted.</p>
+          ) : isEditing ? (
+            <div className="space-y-2">
+              <textarea
+                value={editValue}
+                onChange={(event) => setEditValue(event.target.value)}
+                rows={3}
+                className="w-full resize-none rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-white/20"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="btn-brand h-8"
+                  disabled={isSaving || !editValue.trim()}
+                  onClick={() => void saveEdit()}
+                >
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 text-gray-300"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditValue(message.content);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {message.content.trim() ? (
+                <MessageContent content={message.content} />
+              ) : null}
+              <MessageAttachments attachments={message.attachments ?? []} />
+            </>
+          )}
         </div>
 
-        {Object.keys(grouped).length > 0 && (
+        {!isDeleted && Object.keys(grouped).length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {Object.entries(grouped).map(([emoji, { count, reacted }]) => (
               <button
@@ -116,14 +185,14 @@ export function MessageItem({
           </div>
         )}
 
-        {!compact && onOpenThread && message.thread && (
+        {!compact && !isDeleted && onOpenThread && message.thread && (
           <ThreadSummaryBar
             thread={message.thread}
             onOpen={() => onOpenThread(message.id)}
           />
         )}
 
-        {!compact && onOpenThread && !message.thread && (
+        {!compact && !isDeleted && onOpenThread && !message.thread && (
           <Button
             variant="ghost"
             size="sm"
@@ -136,7 +205,51 @@ export function MessageItem({
         )}
       </div>
 
-      <div className="absolute right-1 top-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:right-2 sm:top-2">
+      <div className="absolute right-1 top-1 flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:right-2 sm:top-2">
+        {(canEdit || canDelete) && (
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white"
+              onClick={() => setShowActions((value) => !value)}
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+            {showActions && (
+              <div className="glass-card absolute right-0 top-9 z-20 min-w-36 p-1">
+                {canEdit && (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-gray-200 hover:bg-white/10"
+                    onClick={() => {
+                      setShowActions(false);
+                      setIsEditing(true);
+                      setEditValue(message.content);
+                    }}
+                  >
+                    <Pencil className="size-3.5" />
+                    Edit
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-300 hover:bg-white/10"
+                    onClick={() => {
+                      setShowActions(false);
+                      void onDelete(message.id);
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                    Delete
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         <Button
           variant="ghost"
           size="icon"

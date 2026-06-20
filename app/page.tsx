@@ -39,7 +39,7 @@ const faqs = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen overflow-x-hidden bg-black text-white">
       <SiteHeader overlapHero />
 
       <main>
@@ -49,7 +49,7 @@ export default function LandingPage() {
         <LandingPrinciples />
         <PricingTable />
 
-        <section id="faq" className="scroll-mt-24 border-t border-border py-16 md:py-24">
+        <section id="faq" className="scroll-mt-24 border-t border-border py-12 sm:py-16 md:py-24">
           <div className="container mx-auto px-4 sm:px-6">
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="text-sm font-medium uppercase tracking-widest text-primary">
@@ -62,7 +62,7 @@ export default function LandingPage() {
                   wordDelay={75}
                 />
               </h2>
-              <p className="mt-4 text-muted-foreground">
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
                 Plan details live in{" "}
                 <a href="#pricing" className="text-white hover:underline">
                   pricing

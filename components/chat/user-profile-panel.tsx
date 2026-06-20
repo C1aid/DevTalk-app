@@ -16,13 +16,17 @@ import { UserAvatar } from "@/components/user-avatar";
 import { useToast } from "@/hooks/use-toast";
 import { getDisplayName } from "@/lib/profile/display";
 import { formatProfileLocalTime } from "@/lib/profile/local-time";
-import type { Profile } from "@/lib/types/database";
+import { getPresenceLabel, resolvePresenceStatus } from "@/lib/presence/utils";
+import type { Profile, PresenceStatus } from "@/lib/types/database";
 import { cn } from "@/lib/utils";
 
 export type UserProfileSummary = Pick<
   Profile,
   "id" | "email" | "display_name" | "avatar_url"
->;
+> & {
+  presence_status?: PresenceStatus;
+  last_active_at?: string | null;
+};
 
 type UserProfilePanelProps = {
   profile: UserProfileSummary;
@@ -31,16 +35,30 @@ type UserProfilePanelProps = {
   className?: string;
 };
 
-function ProfileStatus({ isSelf }: { isSelf: boolean }) {
+function ProfileStatus({
+  profile,
+  isSelf,
+}: {
+  profile: UserProfileSummary;
+  isSelf: boolean;
+}) {
+  const presence = resolvePresenceStatus(
+    profile.presence_status ?? (isSelf ? "online" : "offline"),
+    profile.last_active_at,
+  );
+
   return (
     <div className="flex items-center gap-2 text-sm text-gray-400">
       <span
         className={cn(
           "size-2 shrink-0 rounded-full",
-          isSelf ? "bg-emerald-400" : "bg-gray-500",
+          presence === "online" && "bg-emerald-400",
+          presence === "idle" && "bg-amber-400",
+          presence === "dnd" && "bg-red-500",
+          presence === "offline" && "bg-gray-500",
         )}
       />
-      <span>{isSelf ? "Online" : "Workspace member"}</span>
+      <span>{getPresenceLabel(presence)}</span>
     </div>
   );
 }
@@ -99,6 +117,7 @@ export function UserProfilePanel({
       <div className="flex justify-center">
         <UserAvatar
           profile={profile}
+          showPresence
           className="size-28 rounded-2xl ring-1 ring-white/10"
           fallbackClassName="text-2xl font-bold bg-white text-black"
         />
@@ -109,7 +128,7 @@ export function UserProfilePanel({
       </h2>
 
       <div className="mt-2 space-y-1.5">
-        <ProfileStatus isSelf={isSelf} />
+        <ProfileStatus profile={profile} isSelf={isSelf} />
         {isSelf && (
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <Clock className="size-4 shrink-0 text-gray-500" />

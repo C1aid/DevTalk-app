@@ -95,7 +95,7 @@ export function LandingProductStory() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-24 border-y border-white/[0.06] py-16 md:py-24 lg:py-28"
+      className="scroll-mt-24 border-y border-white/[0.06] py-12 sm:py-16 md:py-24 lg:py-28"
     >
       <div className="container mx-auto px-4 sm:px-6">
         <Reveal className="mx-auto max-w-2xl text-center">
@@ -106,14 +106,24 @@ export function LandingProductStory() {
             className="mt-3 text-2xl font-normal tracking-tight text-white sm:text-3xl md:text-4xl"
             style={{ letterSpacing: "-0.03em" }}
           >
-            Workspace → channel → message.
-            <span className="block text-muted-foreground">
+            <span className="inline-flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
+              <span>Workspace</span>
+              <span className="text-white/25" aria-hidden>
+                /
+              </span>
+              <span>channel</span>
+              <span className="text-white/25" aria-hidden>
+                /
+              </span>
+              <span>message</span>
+            </span>
+            <span className="mt-2 block text-muted-foreground">
               Nothing extra in between.
             </span>
           </h2>
         </Reveal>
 
-        <div className="mx-auto mt-14 max-w-5xl space-y-16 md:mt-20 md:space-y-24">
+        <div className="mx-auto mt-10 max-w-5xl space-y-12 sm:mt-14 sm:space-y-16 md:mt-20 md:space-y-24">
           {steps.map(({ number, title, body, visual }, index) => {
             const reversed = index % 2 === 1;
 
@@ -121,26 +131,28 @@ export function LandingProductStory() {
               <Reveal key={number} delay={index * 60} y={28}>
                 <div
                   className={cn(
-                    "grid items-center gap-8 md:grid-cols-2 md:gap-12 lg:gap-16",
+                    "grid items-center gap-6 sm:gap-8 md:grid-cols-2 md:gap-12 lg:gap-16",
                     reversed && "md:[&>div:first-child]:order-2",
                   )}
                 >
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium tabular-nums text-white/30">
                       {number}
                     </p>
                     <h3
-                      className="mt-2 text-xl font-normal tracking-tight text-white sm:text-2xl"
+                      className="mt-2 text-lg font-normal tracking-tight text-white sm:text-xl md:text-2xl"
                       style={{ letterSpacing: "-0.03em" }}
                     >
                       {title}
                     </h3>
-                    <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
                       {body}
                     </p>
                   </div>
 
-                  <StepVisual variant={visual} />
+                  <div className="min-w-0">
+                    <StepVisual variant={visual} />
+                  </div>
                 </div>
               </Reveal>
             );

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseAttachments, type MessageAttachment } from "@/lib/chat/attachments";
-import type { Message, Profile, Reaction } from "@/lib/types/database";
+import type { Message, Profile, Reaction, PresenceStatus } from "@/lib/types/database";
 import { getHistoryCutoff, isProTier, type SubscriptionTier } from "@/lib/types/database";
 
 export type ThreadSummary = {
@@ -9,8 +9,16 @@ export type ThreadSummary = {
   participants: Pick<Profile, "id" | "email" | "display_name" | "avatar_url">[];
 };
 
+export type MessageAuthor = Pick<
+  Profile,
+  "id" | "email" | "display_name" | "avatar_url"
+> & {
+  presence_status?: PresenceStatus;
+  last_active_at?: string;
+};
+
 export type MessageWithAuthor = Message & {
-  author: Pick<Profile, "id" | "email" | "display_name" | "avatar_url">;
+  author: MessageAuthor;
   reactions: (Reaction & { user_email?: string })[];
   attachments: MessageAttachment[];
   thread?: ThreadSummary;
@@ -44,7 +52,7 @@ async function attachThreadSummaries(
       parent_message_id,
       created_at,
       user_id,
-      author:profiles!messages_user_id_fkey(id, email, display_name, avatar_url)
+      author:profiles!messages_user_id_fkey(id, email, display_name, avatar_url, presence_status, last_active_at)
     `,
     )
     .in("parent_message_id", parentIds)
@@ -107,7 +115,7 @@ export async function fetchChannelMessages(
     .select(
       `
       *,
-      author:profiles!messages_user_id_fkey(id, email, display_name, avatar_url),
+      author:profiles!messages_user_id_fkey(id, email, display_name, avatar_url, presence_status, last_active_at),
       reactions(*)
     `,
     )

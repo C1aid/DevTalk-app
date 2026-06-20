@@ -7,14 +7,18 @@ import { MessageInput, type SendMessagePayload } from "@/components/chat/message
 import { MessageList } from "@/components/chat/message-list";
 import { MessageItem } from "@/components/chat/message-item";
 import { ChannelHeader } from "@/components/chat/channel-header";
+import { ChannelSettingsPanel } from "@/components/chat/channel-settings-panel";
 import { ChatSidePanel } from "@/components/chat/chat-side-panel";
+import { MembersPanel, type MemberListEntry } from "@/components/chat/members-panel";
+import { PresenceStatusPicker } from "@/components/presence/presence-status-picker";
 import {
   UserProfilePanel,
   type UserProfileSummary,
 } from "@/components/chat/user-profile-panel";
 import { useToast } from "@/hooks/use-toast";
 import type { MessageWithAuthor } from "@/lib/chat/queries";
-import type { Channel, Profile } from "@/lib/types/database";
+import { canManageChannel, canPostInChannel } from "@/lib/chat/permissions";
+import type { Channel, Profile, WorkspaceMemberRole } from "@/lib/types/database";
 import { getDisplayName } from "@/lib/profile/display";
 import { dmChatPath } from "@/lib/workspace/paths";
 import { createClient } from "@/lib/supabase/client";
@@ -39,6 +43,12 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
   const [threadParentId, setThreadParentId] = useState<string | null>(null);
   const [threadMessages, setThreadMessages] = useState<MessageWithAuthor[]>([]);
   const [profileUser, setProfileUser] = useState<UserProfileSummary | null>(null);
+  const [membersPanelOpen, setMembersPanelOpen] = useState(false);
+  const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
+  const [members, setMembers] = useState<MemberListEntry[]>([]);
+  const [workspaceRole, setWorkspaceRole] = useState<WorkspaceMemberRole | null>(null);
+  const [channelMemberRole, setChannelMemberRole] = useState<string | null>(null);
+  const [canManageRoles, setCanManageRoles] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +92,28 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
     } else {
       setDmPeer(null);
     }
+
+    if (profile?.id) {
+      const { data: channelMember } = await supabase
+        .from("channel_members")
+        .select("role")
+        .eq("channel_id", channelId)
+        .eq("user_id", profile.id)
+        .maybeSingle();
+      setChannelMemberRole(channelMember?.role ?? null);
+    }
+
+    if (ch?.workspace_id && profile?.id) {
+      const { data: workspaceMember } = await supabase
+        .from("workspace_members")
+        .select("role")
+        .eq("workspace_id", ch.workspace_id)
+        .eq("user_id", profile.id)
+        .maybeSingle();
+      setWorkspaceRole((workspaceMember?.role as WorkspaceMemberRole) ?? null);
+    } else {
+      setWorkspaceRole(null);
+    }
   }, [channelId, profile?.id]);
 
   const loadMessages = useCallback(async () => {
@@ -96,6 +128,23 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
     setIsLoading(false);
   }, [channelId, search]);
 
+  const loadMembers = useCallback(async () => {
+    const res = await fetch(`/api/channels/${channelId}/members`);
+    if (!res.ok) return;
+
+    const data = (await res.json()) as {
+      members: MemberListEntry[];
+      canManageRoles?: boolean;
+      currentUserRole?: WorkspaceMemberRole;
+    };
+
+    setMembers(data.members ?? []);
+    setCanManageRoles(Boolean(data.canManageRoles));
+    if (data.currentUserRole) {
+      setWorkspaceRole(data.currentUserRole);
+    }
+  }, [channelId]);
+
   const loadThread = useCallback(async (parentId: string) => {
     const params = new URLSearchParams({ channelId, parentId });
     const res = await fetch(`/api/messages?${params}`);
@@ -107,7 +156,8 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
   useEffect(() => {
     void loadChannel();
     void loadMessages();
-  }, [loadChannel, loadMessages]);
+    void loadMembers();
+  }, [loadChannel, loadMessages, loadMembers]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -152,6 +202,19 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
           if (threadParentId) void loadThread(threadParentId);
         },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `channel_id=eq.${channelId}`,
+        },
+        () => {
+          void loadMessages();
+          if (threadParentId) void loadThread(threadParentId);
+        },
+      )
       .subscribe();
 
     return () => {
@@ -181,6 +244,63 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
     if (parentMessageId) await loadThread(parentMessageId);
   };
 
+  const editMessage = async (messageId: string, content: string) => {
+    const res = await fetch("/api/messages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messageId, content }),
+    });
+
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      throw new Error(data.error ?? "Failed to edit message");
+    }
+
+    await loadMessages();
+    if (threadParentId) await loadThread(threadParentId);
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    const res = await fetch(`/api/messages?messageId=${messageId}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      toast({
+        title: "Could not delete message",
+        description: data.error ?? "Something went wrong",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await loadMessages();
+    if (threadParentId) await loadThread(threadParentId);
+  };
+
+  const changeMemberRole = async (userId: string, role: "admin" | "member") => {
+    if (!channel?.workspace_id) return;
+
+    const res = await fetch(`/api/workspaces/${channel.workspace_id}/members`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, role }),
+    });
+
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      toast({
+        title: "Could not update role",
+        description: data.error ?? "Something went wrong",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await loadMembers();
+  };
+
   const toggleReaction = async (messageId: string, emoji: string) => {
     const message = [...messages, ...threadMessages].find((m) => m.id === messageId);
     const existing = message?.reactions?.find(
@@ -206,7 +326,24 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
 
   const openProfile = (author: UserProfileSummary) => {
     setThreadParentId(null);
+    setMembersPanelOpen(false);
+    setSettingsPanelOpen(false);
     setProfileUser(author);
+  };
+
+  const openMembers = () => {
+    setThreadParentId(null);
+    setProfileUser(null);
+    setSettingsPanelOpen(false);
+    setMembersPanelOpen(true);
+    void loadMembers();
+  };
+
+  const openSettings = () => {
+    setThreadParentId(null);
+    setProfileUser(null);
+    setMembersPanelOpen(false);
+    setSettingsPanelOpen(true);
   };
 
   const startDm = async (userId: string) => {
@@ -242,8 +379,22 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
 
   const isDm = channel?.kind === "dm";
   const headerTitle = isDm && dmPeer ? getDisplayName(dmPeer) : channel?.name;
+  const canPost = canPostInChannel(
+    channel,
+    workspaceRole,
+    channelMemberRole === "owner",
+  );
+  const canManageSettings = canManageChannel(
+    workspaceRole,
+    channel?.created_by,
+    profile?.id,
+  ) && channel?.kind !== "dm";
 
   const ChannelIcon = isDm ? User : channel?.visibility === "private" ? Lock : Hash;
+  const readOnlyPlaceholder =
+    channel?.posting_permission === "admins_only"
+      ? "Only admins can post in this channel"
+      : "You do not have permission to post here";
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -258,6 +409,10 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
           isPrivate={channel?.visibility === "private"}
           search={searchInput}
           onSearchChange={setSearchInput}
+          onOpenMembers={openMembers}
+          onOpenSettings={openSettings}
+          canManageSettings={canManageSettings}
+          memberCount={members.length || undefined}
         />
 
         <div className="relative flex min-h-0 flex-1">
@@ -291,6 +446,8 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
                   onOpenThread={openThread}
                   onToggleReaction={toggleReaction}
                   onAuthorClick={openProfile}
+                  onEdit={editMessage}
+                  onDelete={deleteMessage}
                 />
               )}
               <div ref={bottomRef} />
@@ -299,6 +456,8 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
             <MessageInput
               channelId={channelId}
               onSend={(payload) => sendMessage(payload)}
+              disabled={!canPost}
+              placeholder={canPost ? "Message…" : readOnlyPlaceholder}
             />
           </div>
 
@@ -311,7 +470,8 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
                 channelId={channelId}
                 isThread
                 channelName={channel?.name}
-                placeholder="Reply…"
+                placeholder={canPost ? "Reply…" : readOnlyPlaceholder}
+                disabled={!canPost}
                 onSend={(payload) => sendMessage(payload, threadParentId)}
                 onAlsoSendToChannel={(payload) => sendMessage(payload)}
               />
@@ -331,6 +491,8 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
                 currentUserId={profile?.id}
                 onToggleReaction={toggleReaction}
                 onAuthorClick={openProfile}
+                onEdit={editMessage}
+                onDelete={deleteMessage}
                 compact
               />
             </div>
@@ -350,6 +512,46 @@ export function ChannelChat({ channelId, initialThreadId }: ChannelPageProps) {
             />
           </ChatSidePanel>
           )}
+
+        {membersPanelOpen && (
+          <ChatSidePanel
+            title="Members"
+            size="wide"
+            onClose={() => setMembersPanelOpen(false)}
+            footer={
+              profile?.id ? (
+                <div className="border-t border-white/10 p-4">
+                  <PresenceStatusPicker />
+                </div>
+              ) : undefined
+            }
+          >
+            <MembersPanel
+              members={members}
+              currentUserId={profile?.id}
+              canManageRoles={canManageRoles}
+              onRoleChange={changeMemberRole}
+              onMemberClick={(memberProfile) => {
+                if (!memberProfile) return;
+                openProfile(memberProfile);
+              }}
+            />
+          </ChatSidePanel>
+        )}
+
+        {settingsPanelOpen && channel && (
+          <ChatSidePanel
+            title="Channel settings"
+            size="wide"
+            onClose={() => setSettingsPanelOpen(false)}
+          >
+            <ChannelSettingsPanel
+              channel={channel}
+              onUpdated={(updated) => setChannel(updated)}
+              onClose={() => setSettingsPanelOpen(false)}
+            />
+          </ChatSidePanel>
+        )}
         </div>
       </div>
     </div>

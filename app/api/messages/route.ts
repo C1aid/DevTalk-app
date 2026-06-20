@@ -23,6 +23,15 @@ const createMessageSchema = z
     { message: "Message must include text or at least one attachment" },
   );
 
+const updateMessageSchema = z.object({
+  messageId: z.string().uuid(),
+  content: z.string().trim().min(1).max(10000),
+});
+
+const deleteMessageSchema = z.object({
+  messageId: z.string().uuid(),
+});
+
 export async function GET(request: Request) {
   const supabase = await createClient();
   const {
@@ -89,6 +98,16 @@ export async function POST(request: Request) {
     );
   }
 
+  const { data: channel } = await supabase
+    .from("channels")
+    .select("id, posting_permission, kind")
+    .eq("id", parsed.data.channelId)
+    .single();
+
+  if (!channel) {
+    return NextResponse.json({ error: "Channel not found" }, { status: 404 });
+  }
+
   for (const attachment of parsed.data.attachments ?? []) {
     const expectedPrefix = `${parsed.data.channelId}/${user.id}/`;
     if (!attachment.path.startsWith(expectedPrefix)) {
@@ -108,7 +127,84 @@ export async function POST(request: Request) {
     .select(
       `
       *,
-      author:profiles!messages_user_id_fkey(id, email, display_name, avatar_url),
+      author:profiles!messages_user_id_fkey(id, email, display_name, avatar_url, presence_status, last_active_at),
+      reactions(*)
+    `,
+    )
+    .single();
+
+  if (error) {
+    if (error.message.includes("can_post_in_channel") || error.code === "42501") {
+      return NextResponse.json(
+        { error: "You do not have permission to post in this channel" },
+        { status: 403 },
+      );
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  await supabase
+    .from("profiles")
+    .update({ last_active_at: new Date().toISOString() })
+    .eq("id", user.id);
+
+  return NextResponse.json(data, { status: 201 });
+}
+
+export async function PATCH(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const parsed = updateMessageSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.errors[0]?.message ?? "Invalid input" },
+      { status: 400 },
+    );
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("messages")
+    .select("id, user_id, attachments, deleted_at")
+    .eq("id", parsed.data.messageId)
+    .single();
+
+  if (fetchError || !existing) {
+    return NextResponse.json({ error: "Message not found" }, { status: 404 });
+  }
+
+  if (existing.deleted_at) {
+    return NextResponse.json({ error: "Message was deleted" }, { status: 400 });
+  }
+
+  if (existing.user_id !== user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const attachments = Array.isArray(existing.attachments) ? existing.attachments : [];
+  if (attachments.length > 0) {
+    return NextResponse.json(
+      { error: "Only plain text messages can be edited" },
+      { status: 400 },
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("messages")
+    .update({ content: parsed.data.content })
+    .eq("id", parsed.data.messageId)
+    .select(
+      `
+      *,
+      author:profiles!messages_user_id_fkey(id, email, display_name, avatar_url, presence_status, last_active_at),
       reactions(*)
     `,
     )
@@ -118,5 +214,54 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data, { status: 201 });
+  return NextResponse.json(data);
+}
+
+export async function DELETE(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const parsed = deleteMessageSchema.safeParse({
+    messageId: searchParams.get("messageId"),
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: "messageId required" }, { status: 400 });
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("messages")
+    .select("id, deleted_at")
+    .eq("id", parsed.data.messageId)
+    .single();
+
+  if (fetchError || !existing) {
+    return NextResponse.json({ error: "Message not found" }, { status: 404 });
+  }
+
+  if (existing.deleted_at) {
+    return NextResponse.json({ ok: true });
+  }
+
+  const { error } = await supabase
+    .from("messages")
+    .update({
+      deleted_at: new Date().toISOString(),
+      content: "",
+      attachments: [],
+    })
+    .eq("id", parsed.data.messageId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

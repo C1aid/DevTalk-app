@@ -8,6 +8,7 @@ import {
   showSecondarySidebar,
 } from "@/components/dashboard-sidebar";
 import { IconRail } from "@/components/dashboard/icon-rail";
+import { PresenceProvider } from "@/components/presence/presence-provider";
 import type { Profile } from "@/lib/types/database";
 import { isChannelChatRoute } from "@/lib/workspace/paths";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,7 @@ export default function DashboardLayout({
   }, [setProfile, setLoading]);
 
   return (
+    <PresenceProvider>
     <div className="min-h-screen bg-black text-white">
       <IconRail />
       <DashboardSidebar />
@@ -85,5 +87,6 @@ export default function DashboardLayout({
         </div>
       </main>
     </div>
+    </PresenceProvider>
   );
 }

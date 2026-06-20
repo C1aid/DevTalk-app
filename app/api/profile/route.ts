@@ -49,9 +49,22 @@ export async function PATCH(request: Request) {
         ? undefined
         : parsed.data.display_name?.trim() || null;
 
+    const updates: Record<string, string | null> = {};
+    if (displayName !== undefined) updates.display_name = displayName;
+    if (parsed.data.presence_status !== undefined) {
+      updates.presence_status = parsed.data.presence_status;
+      if (parsed.data.presence_status === "online") {
+        updates.last_active_at = new Date().toISOString();
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from("profiles")
-      .update({ display_name: displayName })
+      .update(updates)
       .eq("id", user.id)
       .select()
       .single();

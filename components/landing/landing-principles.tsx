@@ -21,7 +21,7 @@ const principles = [
 
 export function LandingPrinciples() {
   return (
-    <section className="py-16 md:py-20 lg:py-24">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
@@ -33,35 +33,35 @@ export function LandingPrinciples() {
           >
             Built for teams tired of chat bloat.
           </h2>
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
             Three lines we don&apos;t cross — no matter how the product evolves.
           </p>
         </Reveal>
 
-        <LandingGlassPanel className="mt-12 sm:mt-16" delay={100}>
+        <LandingGlassPanel className="mt-8 sm:mt-12 md:mt-16" delay={100}>
           <div className="divide-y divide-white/[0.08]">
             {principles.map(({ number, title, body }) => (
               <article
                 key={number}
-                className="flex flex-col gap-5 px-6 py-8 sm:flex-row sm:items-center sm:justify-between sm:gap-10 sm:px-10 sm:py-10 md:px-12"
+                className="relative px-5 py-7 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-8 sm:py-9 md:gap-10 md:px-10 md:py-10 lg:px-12"
               >
-                <div className="min-w-0 max-w-xl">
+                <div className="relative z-10 min-w-0 max-w-xl pr-14 sm:pr-0">
                   <p className="text-xs font-medium tabular-nums tracking-[0.2em] text-white/35">
                     {number}
                   </p>
                   <h3
-                    className="mt-3 text-lg font-medium tracking-tight text-white sm:text-xl"
+                    className="mt-2.5 text-base font-medium tracking-tight text-white sm:mt-3 sm:text-lg md:text-xl"
                     style={{ letterSpacing: "-0.02em" }}
                   >
                     {title}
                   </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
+                  <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-[15px]">
                     {body}
                   </p>
                 </div>
 
                 <p
-                  className="self-end shrink-0 select-none text-[4rem] font-light leading-none tabular-nums text-white/[0.05] sm:self-auto sm:text-[6rem] md:text-[7rem]"
+                  className="pointer-events-none absolute bottom-3 right-4 select-none text-[3.75rem] font-light leading-none tabular-nums text-white/[0.04] sm:static sm:bottom-auto sm:right-auto sm:shrink-0 sm:text-[5.5rem] md:text-[6.5rem] lg:text-[7rem]"
                   aria-hidden
                 >
                   {number}

@@ -1,10 +1,11 @@
 "use client";
 
-import { Code, CodeXml, Loader2, Mic, Paperclip, Send, Smile, X } from "lucide-react";
+import { Code, CodeXml, Loader2, Mic, Paperclip, Send, Smile, Square, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { EmojiPickerPanel } from "@/components/chat/emoji-picker-panel";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { formatVoiceDuration, useVoiceRecorder } from "@/hooks/use-voice-recorder";
 import {
   formatFileSize,
   MAX_ATTACHMENTS_PER_MESSAGE,
@@ -98,9 +99,10 @@ export function MessageInput({
   const [isSending, setIsSending] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [alsoSendToChannel, setAlsoSendToChannel] = useState(false);
+  const voice = useVoiceRecorder();
 
   const canSend =
-    content.trim().length > 0 || pendingFiles.length > 0;
+    content.trim().length > 0 || pendingFiles.length > 0 || voice.state === "recorded";
 
   const applyFormat = useCallback((result: FormatResult) => {
     setContent(result.value);
@@ -198,8 +200,19 @@ export function MessageInput({
 
     setIsSending(true);
     try {
+      const files = [...pendingFiles];
+      if (voice.state === "recorded") {
+        const voiceFile = voice.getFile();
+        if (voiceFile) {
+          files.push({
+            id: `voice-${Date.now()}`,
+            file: voiceFile,
+          });
+        }
+      }
+
       const attachments =
-        pendingFiles.length > 0 ? await uploadAttachments(pendingFiles) : undefined;
+        files.length > 0 ? await uploadAttachments(files) : undefined;
 
       const payload: SendMessagePayload = {
         content: content.trim(),
@@ -216,6 +229,7 @@ export function MessageInput({
       setPendingFiles([]);
       setAlsoSendToChannel(false);
       setShowEmojiPicker(false);
+      voice.reset();
     } catch (err) {
       toast({
         title: "Could not send message",
@@ -227,18 +241,25 @@ export function MessageInput({
     }
   };
 
+  const handleVoiceClick = async () => {
+    if (voice.state === "recording") {
+      voice.stop();
+      return;
+    }
+
+    if (voice.state === "recorded") {
+      voice.reset();
+      return;
+    }
+
+    await voice.start();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       void handleSubmit();
     }
-  };
-
-  const showComingSoon = (feature: string) => {
-    toast({
-      title: "Coming soon",
-      description: `${feature} will be available in a future update.`,
-    });
   };
 
   return (
@@ -292,6 +313,43 @@ export function MessageInput({
           </div>
         )}
 
+        {voice.state === "recording" && (
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2 text-sm text-red-300">
+            <span className="flex items-center gap-2">
+              <span className="size-2 animate-pulse rounded-full bg-red-400" />
+              Recording {formatVoiceDuration(voice.durationMs)}
+            </span>
+            <button
+              type="button"
+              className="rounded-lg p-1 text-gray-300 hover:bg-white/10 hover:text-white"
+              onClick={() => voice.stop()}
+              aria-label="Stop recording"
+            >
+              <Square className="size-4 fill-current" />
+            </button>
+          </div>
+        )}
+
+        {voice.state === "recorded" && (
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2 text-sm text-sky-300">
+            <span>Voice message ready</span>
+            <button
+              type="button"
+              className="rounded-lg p-1 text-gray-300 hover:bg-white/10 hover:text-white"
+              onClick={() => voice.reset()}
+              aria-label="Discard voice message"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        )}
+
+        {voice.error && (
+          <p className="border-b border-white/10 px-3 py-2 text-xs text-red-300">
+            {voice.error}
+          </p>
+        )}
+
         <textarea
           ref={textareaRef}
           value={content}
@@ -327,8 +385,10 @@ export function MessageInput({
               <Paperclip className="size-4" />
             </ToolbarButton>
             <ToolbarButton
-              label="Voice message"
-              onClick={() => showComingSoon("Voice messages")}
+              label={voice.state === "recording" ? "Stop recording" : "Voice message"}
+              active={voice.state === "recording" || voice.state === "recorded"}
+              disabled={disabled || isSending}
+              onClick={() => void handleVoiceClick()}
             >
               <Mic className="size-4" />
             </ToolbarButton>

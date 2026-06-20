@@ -8,6 +8,7 @@ export const profileUpdateSchema = z.object({
     .max(100, "Name must be at most 100 characters")
     .nullable()
     .optional(),
+  presence_status: z.enum(["online", "idle", "dnd", "offline"]).optional(),
 });
 
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;

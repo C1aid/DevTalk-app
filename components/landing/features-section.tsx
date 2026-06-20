@@ -98,7 +98,7 @@ function CapabilityGroup({
   return (
     <div
       className={cn(
-        "rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5",
+        "rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5 sm:p-5",
         className,
       )}
     >
@@ -117,7 +117,7 @@ function CapabilityGroup({
 
 function ShipTile({ icon: Icon, title, description }: Capability) {
   return (
-    <div className="group rounded-xl border border-white/[0.06] bg-black/20 p-4 transition-colors hover:border-white/12 hover:bg-white/[0.03] sm:p-5">
+    <div className="group rounded-xl border border-white/[0.06] bg-black/20 p-3.5 transition-colors hover:border-white/12 hover:bg-white/[0.03] sm:p-5">
       <Icon className="size-4 text-white/50 transition-colors group-hover:text-white/80" />
       <p className="mt-4 text-sm font-medium text-white">{title}</p>
       <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
@@ -129,7 +129,7 @@ function ShipTile({ icon: Icon, title, description }: Capability) {
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="scroll-mt-24 py-16 md:py-24 lg:py-32">
+    <section id="features" className="scroll-mt-24 py-12 sm:py-16 md:py-24 lg:py-32">
       <div className="container mx-auto px-4 sm:px-6">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
@@ -146,19 +146,19 @@ export function FeaturesSection() {
           </h2>
         </Reveal>
 
-        <LandingGlassPanel className="mt-12 sm:mt-16" delay={80}>
-          <div className="space-y-4 p-5 sm:p-7 md:p-8">
-            <div className="grid gap-4 md:grid-cols-2">
+        <LandingGlassPanel className="mt-8 sm:mt-12 md:mt-16" delay={80}>
+          <div className="space-y-3 p-4 sm:space-y-4 sm:p-6 md:p-8">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               <CapabilityGroup label="Organize" items={organize} />
               <CapabilityGroup label="Communicate" items={communicate} />
             </div>
 
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
-              <p className="mb-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5 sm:p-5">
+              <p className="mb-3 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-white/45 sm:mb-4">
                 <span className="h-px w-4 bg-white/25" />
                 Ship
               </p>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
                 {ship.map((item) => (
                   <ShipTile key={item.title} {...item} />
                 ))}
