@@ -297,6 +297,18 @@ export type Reaction = Database["public"]["Tables"]["reactions"]["Row"];
 export const FREE_CHANNEL_LIMIT = 10;
 export const FREE_HISTORY_DAYS = 90;
 export const PRO_PRICE_MONTHLY = 8;
+export const PRO_PRICE_YEARLY = 72;
+
+export type BillingInterval = "monthly" | "yearly";
+
+export function getProYearlyMonthlyEquivalent(): number {
+  return PRO_PRICE_YEARLY / 12;
+}
+
+export function getProYearlySavingsPercent(): number {
+  const fullYear = PRO_PRICE_MONTHLY * 12;
+  return Math.round(((fullYear - PRO_PRICE_YEARLY) / fullYear) * 100);
+}
 
 export function isProTier(tier: SubscriptionTier): boolean {
   return tier === "pro" || tier === "premium";

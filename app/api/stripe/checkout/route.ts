@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
-import { PRO_PRICE_ID, getStripe } from "@/lib/stripe";
+import { getProPriceId, getStripe } from "@/lib/stripe";
+import type { BillingInterval } from "@/lib/types/database";
 import { ensureUserProfile } from "@/lib/supabase/ensure-profile";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    let interval: BillingInterval = "monthly";
+    try {
+      const body = (await request.json()) as { interval?: BillingInterval };
+      if (body.interval === "yearly" || body.interval === "monthly") {
+        interval = body.interval;
+      }
+    } catch {
+    }
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -40,7 +50,7 @@ export async function POST() {
       customer: customerId,
       mode: "subscription",
       payment_method_types: ["card"],
-      line_items: [{ price: PRO_PRICE_ID, quantity: 1 }],
+      line_items: [{ price: getProPriceId(interval), quantity: 1 }],
       success_url: `${appUrl}/settings?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/settings?canceled=true`,
       metadata: { supabase_user_id: user.id },

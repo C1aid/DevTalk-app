@@ -39,7 +39,6 @@ export function usePresence() {
         });
       }
     } catch {
-      // ignore transient network errors
     }
   }, [setProfile]);
 
